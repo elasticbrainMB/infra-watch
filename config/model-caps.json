@@ -1,0 +1,5 @@
+{
+  "per_call_max_tokens": 16000,
+  "per_run_dollar_cap": 0.25,
+  "per_day_dollar_cap": 0.50
+}
