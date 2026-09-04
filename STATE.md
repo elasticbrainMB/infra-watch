@@ -76,12 +76,44 @@ exits early with a one-line message for those, no model call made.
 
 Five files now in `records\assessments\*.md`, uncommitted.
 
-**Sitting 3 (schedule and close) not yet started** — `run-check.ps1`,
-Discord wiring, Task Scheduler registration.
+**Sitting 3 — `run-check.ps1` written and run live twice** (runs
+`20260904-053218`, `20260904-053532`), Discord posting confirmed working
+against real webhooks. Task Scheduler registration not yet done.
+
+Two bugs found and fixed:
+- `$assessments = foreach (...) { ...; Write-Output $stage.Output; ... }` —
+  PowerShell captures *everything* written inside a `foreach` used as an
+  expression, `Write-Output` included, into the result collection. Every
+  component's console echo was being swept into `$assessments` alongside
+  its real result object, corrupting the failure count. Fixed by using
+  `Write-Host` for the console echo instead (run `20260904-053218` shows
+  the corrupted output; its Discord post to `#runs` has a garbled "FAILED"
+  segment as a result — nothing actually failed).
+- `assess-update.ps1`'s strict response parser required
+  `WHAT_IT_WILL_TAKE:` exactly; the model wrote `WHAT_IT_WILL_TAKES:` for
+  ollama in run `20260904-053532`, so the run correctly flagged it as
+  failed (parser worked as designed — refused to guess) rather than
+  writing a bad file. Regex relaxed to accept the plural. Retried
+  successfully afterward; `records\runs\20260904-053532\summary.json` was
+  hand-reconciled to reflect the final state rather than the transient
+  failure (its own `note` field documents this).
+
+**Real Discord posts went out during this testing** — two to the `runs`
+webhook, two to the `decisions` webhook (the second `decisions` post
+predates ollama's successful retry, so it's missing ollama's
+schedule/high-blast-radius line). No further posts were sent once the
+summary was reconciled, to avoid piling more test traffic onto Matt's real
+channels.
+
+Today's total model spend: **$0.2316** across all testing, well under the
+$0.50/day cap.
 
 ## 3. Blocked, and on whom
 
-Nothing blocked. Sitting 3 hasn't started pending confirmation to proceed.
+Nothing blocked. Task Scheduler registration is a standing/persistent host
+change — asking Matt before registering it, per the safety rules around
+"creating or modifying standing rules or persistent configuration," even
+though it's Sitting 3's own step 11.
 
 ## 4. Governance items open
 

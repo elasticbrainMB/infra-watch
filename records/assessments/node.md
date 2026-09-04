@@ -1,6 +1,6 @@
 # Node.js — 24.18.0 → v24.20.0
 
-_Assessment written 2026-09-03, run `20260903-222833`._
+_Assessment written 2026-09-04, run `20260904-053532`._
 
 | Field | Value |
 |---|---|
@@ -14,11 +14,11 @@ _Assessment written 2026-09-03, run `20260903-222833`._
 
 ## Verdict: `do-now`
 
-v24.18.1 is explicitly a security release fixing twelve CVEs, including three rated High (http2 header memory accounting, http2 RST stream handling, and a permission-model radix split issue). The remaining releases (v24.19.0, v24.20.0) are routine semver-minor features and bug fixes with no breaking changes or migrations called out.
+v24.18.1 is explicitly a security release fixing twelve CVEs, including three rated High (http2 header memory accounting, http2 rst stream handling, and a permission-model radix split issue), plus Medium-severity fixes in https, sqlite, dns, and zlib. The two subsequent releases (v24.19.0, v24.20.0) are routine semver-minor features and bug fixes with no breaking changes or migrations called out.
 
 ## What it will take
 
-Nothing beyond the normal update process - no config format changes, API removals, or migration steps appear in the notes; just recreate the container/restart services on the new runtime.
+Nothing beyond the normal update process - bump the Node version (or recreate the container with the new image) and restart dependent services; the notes mention no config format or API migrations.
 
 ## Source
 

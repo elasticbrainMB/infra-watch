@@ -1,0 +1,47 @@
+{
+  "run_id": "20260904-053218",
+  "timestamp": "2026-09-04T05:33:06.6506080-05:00",
+  "tracked": 7,
+  "current": 2,
+  "behind": 5,
+  "assessed_ok": 5,
+  "assessed_failed": 5,
+  "verdicts": {
+    "do-now": 3,
+    "schedule": 1,
+    "defer": 1
+  },
+  "spend": 0.20272420000000002,
+  "components": [
+    "# n8n — 2.26.0 → n8n@2.37.10\r\n\r\n_Assessment written 2026-09-04, run `20260904-053218`._\r\n\r\n| Field | Value |\r\n|---|---|\r\n| Component | `n8n` |\r\n| Installed version | `2.26.0` |\r\n| Current version (installed's own major line) | `n8n@2.37.10` |\r\n| Releases behind | 41 |\r\n| Minor boundary crossed | True |\r\n| Newer major/track exists (uncounted) | no |\r\n| `blast_radius` | high |\r\n\r\n## Verdict: `defer`\r\n\r\nAcross all 41 releases the notes contain only bug fixes and small features - nothing is labeled a security fix, and nothing is described as broken in a way that's actively causing problems. The closest to notable changes are node-level fixes like the Google Ads v21-to-v25 API migration and Microsoft Teams OAuth scope restoration, but these are handled inside the update itself, not config Matt must change. The minor-version jumps (2.28 to 2.37) look like ordinary rolling releases, not a major-line break.\r\n\r\n## What it will take\r\n\r\nNothing beyond the normal update process - a container recreation to pick up the new image version; the notes call for no config format changes or manual migration steps.\r\n\r\n## Source\r\n\r\nRaw release notes this verdict was drawn from: https://github.com/n8n-io/n8n/releases/tag/n8n%402.37.10\r\n\r\n---\r\n\r\n_This verdict is a model's reading of the release notes, not a substitute for Matt's own judgment. `blast_radius` was declared by Matt in `inventory.json`; everything else on this page is the model's assessment of the change itself._\r\nWritten to C:\\automation\\infra-watch\\records\\assessments\\n8n.md\r\nModel call cost: $0.0283612 (19598 in / 210 out)\r\n",
+    {
+      "id": "n8n",
+      "ok": true,
+      "verdict": "defer"
+    },
+    "# OpenClaw — 2026.7.1 → v2026.9.1\r\n\r\n_Assessment written 2026-09-04, run `20260904-053218`._\r\n\r\n| Field | Value |\r\n|---|---|\r\n| Component | `openclaw` |\r\n| Installed version | `2026.7.1` |\r\n| Current version (installed's own major line) | `v2026.9.1` |\r\n| Releases behind | 3 |\r\n| Minor boundary crossed | True |\r\n| Newer major/track exists (uncounted) | no |\r\n| `blast_radius` | medium |\r\n\r\n## Verdict: `do-now`\r\n\r\nv2026.8.2 explicitly updates the managed Sharp dependency to fix \"vulnerabilities in image decoding,\" which is a stated security fix, and v2026.9.1 adds further hardening around ingress, token, and secret-redaction boundaries. On top of that, v2026.8.1 ships two breaking migrations (removal of the bundled OpenProse plugin and the codex/openai-codex to openai model-ref migration) that require `openclaw doctor --fix` to complete, so this isn't a drop-in patch release.\r\n\r\n## What it will take\r\n\r\nBack up configuration and state first, then run the update followed by `openclaw doctor --fix` to complete the OpenProse and OpenAI route migrations, and restart/recreate the Gateway container; the notes also warn that a failed automatic update should be diagnosed before retrying.\r\n\r\n## Source\r\n\r\nRaw release notes this verdict was drawn from: https://github.com/openclaw/openclaw/releases/tag/v2026.9.1\r\n\r\n---\r\n\r\n_This verdict is a model's reading of the release notes, not a substitute for Matt's own judgment. `blast_radius` was declared by Matt in `inventory.json`; everything else on this page is the model's assessment of the change itself._\r\nWritten to C:\\automation\\infra-watch\\records\\assessments\\openclaw.md\r\nModel call cost: $0.0960578 (67059 in / 586 out)\r\n",
+    {
+      "id": "openclaw",
+      "ok": true,
+      "verdict": "do-now"
+    },
+    "# Ollama — 0.32.6 → v0.33.3\r\n\r\n_Assessment written 2026-09-04, run `20260904-053218`._\r\n\r\n| Field | Value |\r\n|---|---|\r\n| Component | `ollama` |\r\n| Installed version | `0.32.6` |\r\n| Current version (installed's own major line) | `v0.33.3` |\r\n| Releases behind | 12 |\r\n| Minor boundary crossed | True |\r\n| Newer major/track exists (uncounted) | no |\r\n| `blast_radius` | high |\r\n\r\n## Verdict: `schedule`\r\n\r\nNo security fixes and no breaking config or API changes across the 12 releases - it's mostly new model support (Muse Glimmer, Nemotron, Qwen 3.8) plus dependency updates. However, v0.32.15 and v0.33.0 fix real hangs (chat/generate wedging after parser errors, cancelled prefills) and roughly halve time-to-first-token via metadata caching, which are worth getting on a serving component. The minor boundary at v0.33.0 is feature-driven (Claude Desktop gateway support), not a migration.\r\n\r\n## What it will take\r\n\r\nNothing beyond the normal update process - no config format changes, migrations, or CLI behavior changes are mentioned in any of the release notes.\r\n\r\n## Source\r\n\r\nRaw release notes this verdict was drawn from: https://github.com/ollama/ollama/releases/tag/v0.33.3\r\n\r\n---\r\n\r\n_This verdict is a model's reading of the release notes, not a substitute for Matt's own judgment. `blast_radius` was declared by Matt in `inventory.json`; everything else on this page is the model's assessment of the change itself._\r\nWritten to C:\\automation\\infra-watch\\records\\assessments\\ollama.md\r\nModel call cost: $0.0047332 (2748 in / 293 out)\r\n",
+    {
+      "id": "ollama",
+      "ok": true,
+      "verdict": "schedule"
+    },
+    "# Docker Engine — 29.6.1 → docker-v29.8.0\r\n\r\n_Assessment written 2026-09-04, run `20260904-053218`._\r\n\r\n| Field | Value |\r\n|---|---|\r\n| Component | `docker` |\r\n| Installed version | `29.6.1` |\r\n| Current version (installed's own major line) | `docker-v29.8.0` |\r\n| Releases behind | 5 |\r\n| Minor boundary crossed | True |\r\n| Newer major/track exists (uncounted) | no |\r\n| `blast_radius` | high |\r\n\r\n## Verdict: `do-now`\r\n\r\n29.6.2 fixes five CVEs in BuildKit (command injection via Git checkout, /tmp deletion, destination directory validation bypass, and more), and 29.7.0 fixes CVE-2026-17106 in go-archive, so the notes explicitly flag real security content. Later releases also fix several regressions introduced in 29.7.0 itself (image pull failures on certain images and older kernels), so jumping straight to 29.8.0 avoids landing on a broken intermediate. Nothing in the notes describes a breaking config or API change requiring migration.\r\n\r\n## What it will take\r\n\r\nNothing beyond the normal update process - a daemon restart, which will briefly stop and recreate running containers. One optional config tweak: if you relied on unlimited concurrent image pulls/pushes, set \"max-concurrent-downloads\" and \"max-concurrent-uploads\" to 0 to preserve the old behavior.\r\n\r\n## Source\r\n\r\nRaw release notes this verdict was drawn from: https://github.com/moby/moby/releases/tag/docker-v29.8.0\r\n\r\n---\r\n\r\n_This verdict is a model's reading of the release notes, not a substitute for Matt's own judgment. `blast_radius` was declared by Matt in `inventory.json`; everything else on this page is the model's assessment of the change itself._\r\nWritten to C:\\automation\\infra-watch\\records\\assessments\\docker.md\r\nModel call cost: $0.0081168 (5278 in / 257 out)\r\n",
+    {
+      "id": "docker",
+      "ok": true,
+      "verdict": "do-now"
+    },
+    "# Node.js — 24.18.0 → v24.20.0\r\n\r\n_Assessment written 2026-09-04, run `20260904-053218`._\r\n\r\n| Field | Value |\r\n|---|---|\r\n| Component | `node` |\r\n| Installed version | `24.18.0` |\r\n| Current version (installed's own major line) | `v24.20.0` |\r\n| Releases behind | 3 |\r\n| Minor boundary crossed | True |\r\n| Newer major/track exists (uncounted) | v26.8.1 |\r\n| `blast_radius` | low |\r\n\r\n## Verdict: `do-now`\r\n\r\nv24.18.1 is explicitly a security release fixing twelve CVEs, including three rated High (http2 header memory accounting, http2 rst stream handling, and a permission model radix split issue) plus several Medium-severity http2/https/zlib/dns fixes. The two subsequent releases are ordinary semver-minor feature drops with no breaking changes or migrations called out.\r\n\r\n## What it will take\r\n\r\nNothing beyond the normal update process - it's a drop-in patch/minor bump within the same major line, so just recreate the container or swap the binary and restart dependent services.\r\n\r\n## Source\r\n\r\nRaw release notes this verdict was drawn from: https://github.com/nodejs/node/releases/tag/v24.20.0\r\n\r\n---\r\n\r\n_This verdict is a model's reading of the release notes, not a substitute for Matt's own judgment. `blast_radius` was declared by Matt in `inventory.json`; everything else on this page is the model's assessment of the change itself._\r\nWritten to C:\\automation\\infra-watch\\records\\assessments\\node.md\r\nModel call cost: $0.0654552 (46476 in / 180 out)\r\n",
+    {
+      "id": "node",
+      "ok": true,
+      "verdict": "do-now"
+    }
+  ]
+}

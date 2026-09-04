@@ -109,8 +109,8 @@ if (-not $content -or -not $content.Trim()) {
 }
 
 $verdictMatch = [regex]::Match($content, 'VERDICT:\s*(do-now|schedule|defer)\b')
-$whyMatch = [regex]::Match($content, 'WHY:\s*(.+?)(?=\r?\nWHAT_IT_WILL_TAKE:|\z)', 'Singleline')
-$whatMatch = [regex]::Match($content, 'WHAT_IT_WILL_TAKE:\s*(.+)', 'Singleline')
+$whyMatch = [regex]::Match($content, 'WHY:\s*(.+?)(?=\r?\nWHAT_IT_WILL_TAKES?:|\z)', 'Singleline')
+$whatMatch = [regex]::Match($content, 'WHAT_IT_WILL_TAKES?:\s*(.+)', 'Singleline')
 
 if (-not $verdictMatch.Success -or -not $whyMatch.Success -or -not $whatMatch.Success) {
   Write-Output "STOP: model response for '$ComponentId' did not match the required VERDICT/WHY/WHAT_IT_WILL_TAKE format. Raw content:`n$content"

@@ -1,0 +1,43 @@
+{
+  "run_id": "20260904-053532",
+  "timestamp": "2026-09-04T05:39:15.7682842-05:00",
+  "tracked": 7,
+  "current": 2,
+  "behind": 5,
+  "assessed_ok": 5,
+  "assessed_failed": 0,
+  "verdicts": {
+    "do-now": 3,
+    "schedule": 1,
+    "defer": 1
+  },
+  "spend": 0.028870040000000003,
+  "components": [
+    {
+      "id": "n8n",
+      "ok": true,
+      "verdict": "defer"
+    },
+    {
+      "id": "openclaw",
+      "ok": true,
+      "verdict": "do-now"
+    },
+    {
+      "id": "ollama",
+      "ok": true,
+      "verdict": "schedule"
+    },
+    {
+      "id": "docker",
+      "ok": true,
+      "verdict": "do-now"
+    },
+    {
+      "id": "node",
+      "ok": true,
+      "verdict": "do-now"
+    }
+  ],
+  "note": "ollama's assess-update call initially failed to parse (model wrote WHAT_IT_WILL_TAKES: instead of WHAT_IT_WILL_TAKE:); regex relaxed to accept the plural, then retried successfully. This summary reflects the final state, not the transient mid-run failure. Original run-check.ps1 Discord posts (both #runs and #decisions) were sent before this retry and do not include ollama's schedule/high verdict."
+}

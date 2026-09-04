@@ -1,6 +1,6 @@
 # Ollama — 0.32.6 → v0.33.3
 
-_Assessment written 2026-09-03, run `20260903-222833`._
+_Assessment written 2026-09-04, run `20260904-053532`._
 
 | Field | Value |
 |---|---|
@@ -14,11 +14,11 @@ _Assessment written 2026-09-03, run `20260903-222833`._
 
 ## Verdict: `schedule`
 
-Nothing in these notes is a security fix, and no release mentions a config, API, or CLI break or a required migration, so there's no urgency. But the line does fix real operational bugs present in the installed version — chat/generate could wedge after a mid-stream parser error (0.32.15) and agent clients cancelling long prefills could hang (0.33.0) — and the caching work roughly halves time-to-first-token (~995ms to ~524ms) and stops resumed prefills from reprocessing tens of thousands of tokens from zero. For a heavily-used inference service, those stability and performance fixes are worth doing deliberately soon.
+No security fixes and no breaking config or API changes across the 12 releases - the bulk is new model support (Muse Glimmer, Nemotron 3.5, Qwen 3.8, gemma4 multimodal) plus launcher integrations. However, v0.32.15 and v0.33.0 fix real operational bugs: chat/generate wedging after mid-stream parser errors, hangs when agent clients cancel long prefills, and a KV-cache-breaking interaction with Claude Code, alongside a caching change that roughly halves time-to-first-token. Those reliability and performance fixes make this worth doing deliberately rather than sitting on.
 
 ## What it will take
 
-Nothing beyond the normal update process — the notes call for no config changes or migrations, just pulling the new version and recreating the container. The only first-run oddity is a new desktop onboarding flow, which shouldn't matter for a headless install.
+Nothing beyond the normal update process - no migration steps, config format changes, or CLI behavior changes are mentioned in the notes.
 
 ## Source
 

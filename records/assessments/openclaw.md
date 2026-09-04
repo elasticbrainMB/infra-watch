@@ -1,6 +1,6 @@
 # OpenClaw — 2026.7.1 → v2026.9.1
 
-_Assessment written 2026-09-03, run `20260903-222833`._
+_Assessment written 2026-09-04, run `20260904-053532`._
 
 | Field | Value |
 |---|---|
@@ -14,11 +14,11 @@ _Assessment written 2026-09-03, run `20260903-222833`._
 
 ## Verdict: `do-now`
 
-The 2026.8.2 notes literally say the managed Sharp dependency update is "fixing vulnerabilities in image decoding," which is the security signal here. On top of that, 2026.8.1 ships two explicitly breaking migrations (removal of the bundled OpenProse plugin and the codex/openai-codex to openai/* model-ref migration) that require `openclaw doctor --fix`, so this isn't a routine patch set. The 2026.9.1 release also hardens ingress, token, and secret-redaction behavior, reinforcing that this batch is worth acting on.
+The 2026.8.2 notes literally say the managed Sharp dependency update is "fixing vulnerabilities in image decoding," which is an explicit security fix, and 2026.9.1 adds further hardening around ingress, token, and secret-redaction boundaries. On top of that, 2026.8.1 ships two labeled breaking migrations (removal of the bundled OpenProse plugin and the codex/openai-codex to openai/* route migration) that require `openclaw doctor --fix` to complete.
 
 ## What it will take
 
-Back up configuration and state first, then run `openclaw doctor --fix` to complete the OpenProse and OpenAI route migrations and clean stale config, and restart/recreate the Gateway afterward to verify it starts correctly.
+Back up configuration and state first, then run the update followed by `openclaw doctor --fix` to complete the OpenProse cleanup and OpenAI route migration (flagged conflicts need manual repair), and verify the Gateway starts cleanly - effectively a deliberate migration window, not a routine container recreation.
 
 ## Source
 
