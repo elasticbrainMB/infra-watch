@@ -75,6 +75,8 @@
       "Bash(ollama --version *)",
       "Bash(nvidia-smi *)",
       "Bash(docker ps *)",
+      "Bash(docker inspect *)",
+      "Bash(docker version *)",
 
       "PowerShell(Get-ChildItem *)",
       "PowerShell(Get-Content *)",
@@ -96,6 +98,8 @@
       "PowerShell(ollama --version *)",
       "PowerShell(nvidia-smi *)",
       "PowerShell(docker ps *)",
+      "PowerShell(docker inspect *)",
+      "PowerShell(docker version *)",
 
       "Edit(records/**)",
       "Edit(config/**)"

@@ -34,7 +34,7 @@ try {
 
   $body = @{ content = $content } | ConvertTo-Json -Compress
 
-  $tmpDir    = Join-Path $env:TEMP 'caddy-post-discord'
+  $tmpDir    = Join-Path $env:TEMP 'infra-watch-post-discord'
   New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
   $tmpBody   = Join-Path $tmpDir "body-$([guid]::NewGuid()).json"
   $tmpConfig = Join-Path $tmpDir "target-$([guid]::NewGuid()).txt"
