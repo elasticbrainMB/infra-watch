@@ -1,0 +1,121 @@
+{
+  "components": [
+    {
+      "id": "n8n",
+      "display": "n8n",
+      "kind": "docker",
+      "installed_from": {
+        "method": "docker-label",
+        "container": "n8n",
+        "label": "org.opencontainers.image.version"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "n8n-io/n8n",
+        "tag_pattern": "^n8n@(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "high",
+      "notes": "Live workflows depend on this. Container recreation needs Matt's approval, per chunk. Release tags also carry a legacy 1.x line (e.g. n8n@1.123.77) alongside 2.x, plus floating 'stable'/'beta' tags that don't match tag_pattern — comparison stays within the installed major (2.x) by design."
+    },
+    {
+      "id": "open-webui",
+      "display": "Open WebUI",
+      "kind": "docker",
+      "installed_from": {
+        "method": "docker-label",
+        "container": "open-webui",
+        "label": "org.opencontainers.image.version"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "open-webui/open-webui",
+        "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "medium",
+      "notes": "Daily-use interface. Nothing else in the inventory depends on it running."
+    },
+    {
+      "id": "openclaw",
+      "display": "OpenClaw",
+      "kind": "docker",
+      "installed_from": {
+        "method": "docker-label",
+        "container": "openclaw",
+        "label": "org.opencontainers.image.version"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "openclaw/openclaw",
+        "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "medium",
+      "notes": "Repo resolved from the running container's org.opencontainers.image.source label (2026-09-03), not guessed — the project name collides with unrelated repos and SEO content. Config read-only per CLAUDE.md; never edited by this tool."
+    },
+    {
+      "id": "ollama",
+      "display": "Ollama",
+      "kind": "host",
+      "installed_from": {
+        "method": "cli-version",
+        "command": "ollama --version",
+        "extract_regex": "(\\d+\\.\\d+\\.\\d+)"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "ollama/ollama",
+        "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "high",
+      "notes": "Model backend other tracked components (open-webui, likely openclaw) call through host.docker.internal."
+    },
+    {
+      "id": "docker",
+      "display": "Docker Engine",
+      "kind": "host",
+      "installed_from": {
+        "method": "cli-version",
+        "command": "docker version --format \"{{.Server.Version}}\"",
+        "extract_regex": "(\\d+\\.\\d+\\.\\d+)"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "moby/moby",
+        "tag_pattern": "^docker-v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "high",
+      "notes": "Every tracked container runs inside this. moby/moby's release feed also carries client/vX and api/vX tags plus -rc prereleases under the same repo — tag_pattern excludes both. Human-readable release notes cross-reference at https://docs.docker.com/engine/release-notes/."
+    },
+    {
+      "id": "node",
+      "display": "Node.js",
+      "kind": "host",
+      "installed_from": {
+        "method": "cli-version",
+        "command": "node --version",
+        "extract_regex": "(\\d+\\.\\d+\\.\\d+)"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "nodejs/node",
+        "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "low",
+      "notes": "Build-time tool, not a running service. Node ships two concurrent lines (even-numbered majors go LTS after ~6 months, the newest even major is 'Current' until then, odd majors are always Current) — comparison stays within the installed major (currently 24.x LTS) by design; a newer line existing is noted, not counted."
+    },
+    {
+      "id": "pwsh",
+      "display": "PowerShell 7",
+      "kind": "host",
+      "installed_from": {
+        "method": "pwsh-version-table"
+      },
+      "releases_from": {
+        "method": "github-releases",
+        "repo": "PowerShell/PowerShell",
+        "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
+      },
+      "blast_radius": "medium",
+      "notes": "This project's own scripts (and the caddy's) run on it. Distinct from Windows PowerShell 5.1, which this inventory does not track."
+    }
+  ]
+}

@@ -1,2 +1,8 @@
 *.log
 .claude/settings.local.json
+
+# Full raw GitHub API responses (release bodies for every fetched release,
+# not just the ones near the boundary) - can run several MB per component
+# per run. The per-run summaries (installed.json, releases.json) that stay
+# tracked are the actual audit trail; these are disk-only working data.
+records/runs/*/releases-raw/
