@@ -3,7 +3,10 @@
 **Read before acting:** `STATE.md` — the fast orientation file for what's
 true right now (what's tracked, what's running, open work, standing caps).
 `PLAN-infra-watch-v1.md` (written Sitting 1) is authoritative on what this
-project is and why.
+project is and why. `SESSION-LOG.md` is the narrative history behind
+`STATE.md`'s snapshot — one dated entry per session, newest first; read it
+when a "why did we do it this way" question isn't answered by the other
+two.
 
 ## Execution discipline
 
