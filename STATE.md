@@ -6,7 +6,8 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-03 — Sitting 1 (inventory and collection) complete._
+_Last updated: 2026-09-04 — v1 built. All three sittings complete and
+committed; weekly automation is live._
 
 ## 1. What's tracked
 
@@ -44,7 +45,12 @@ the installed line is recorded as an informational flag, never folded into
 
 ## 2. In progress
 
-**Sitting 1 complete** (committed `b336544`). `read-installed.ps1` and
+Nothing in progress — v1 is built. `run-check.ps1` runs weekly, Mondays
+8am, via Task Scheduler (`infra-watch-weekly`). Next scheduled run:
+9/7/2026. All three sittings below are committed (`b336544`, `353678e`,
+`2a438d1`).
+
+**Sitting 1 complete.** `read-installed.ps1` and
 `check-releases.ps1` both written and run cleanly end-to-end.
 
 Bug found and fixed during Sitting 1: an unquoted Go-template format string
@@ -55,9 +61,9 @@ command. Also confirmed mid-sitting: invoking a script via `powershell`
 launches Windows PowerShell 5.1, not pwsh 7 — always use `pwsh -File`, per
 `CLAUDE.md`'s two-host warning.
 
-**Sitting 2 (the judgment layer) — assessments produced, not yet
-committed.** `assess-update.ps1` written and run once per component with a
-non-zero gap, against run `20260903-222833`, using
+**Sitting 2 (the judgment layer) complete.** `assess-update.ps1` written and
+run once per component with a non-zero gap, against run `20260903-222833`,
+using
 `z-ai/glm-5.3-20260816` on OpenRouter (GLM-5.2, referenced in Matt's
 personal notes, no longer exists on OpenRouter as of 2026-09-03 — superseded
 by 5.3). Total spend for the run: **$0.2137** against the $0.25/run cap —
@@ -74,11 +80,12 @@ none capped, none malformed.
 `open-webui` and `pwsh` are already current (0 behind) — `assess-update.ps1`
 exits early with a one-line message for those, no model call made.
 
-Five files now in `records\assessments\*.md`, uncommitted.
+Five files in `records\assessments\*.md`.
 
-**Sitting 3 — `run-check.ps1` written and run live twice** (runs
+**Sitting 3 complete.** `run-check.ps1` written and run live twice (runs
 `20260904-053218`, `20260904-053532`), Discord posting confirmed working
-against real webhooks. Task Scheduler registration not yet done.
+against real webhooks. Weekly Task Scheduler entry registered and verified
+(see §5).
 
 Two bugs found and fixed:
 - `$assessments = foreach (...) { ...; Write-Output $stage.Output; ... }` —
@@ -110,21 +117,28 @@ $0.50/day cap.
 
 ## 3. Blocked, and on whom
 
-Nothing blocked. Task Scheduler registration is a standing/persistent host
-change — asking Matt before registering it, per the safety rules around
-"creating or modifying standing rules or persistent configuration," even
-though it's Sitting 3's own step 11.
+Nothing blocked.
 
 ## 4. Governance items open
 
-None open. Two decisions raised and resolved with Matt during Sitting 1 are
-recorded in §1 above (the node/pwsh split; same-major-line comparison).
+None open. Three decisions raised and resolved with Matt during the build
+are recorded in §1 above (the node/pwsh split; same-major-line comparison)
+and §5 below (Task Scheduler over n8n for the weekly trigger — n8n runs in
+a container isolated from the host tools this project reads, so routing
+through it would need a new host-side webhook listener; Matt chose to keep
+Task Scheduler for this one job rather than build that).
 
 ## 5. Standing rules in force
 
 - **This project never applies an update** — read-and-recommend only. Enforced in `.claude\settings.json`.
 - **Model-call caps**, read fresh from `config\model-caps.json`: `per_call_max_tokens` 16000, `per_run_dollar_cap` $0.25, `per_day_dollar_cap` $0.50.
 - **Write-permission split** — confirmed fresh against `.claude\settings.json`: free `Edit` access to `records\` and `config\`; `scripts\` is an explicit `ask`-gate entry.
+- **Weekly trigger**: Windows Task Scheduler, task `infra-watch-weekly`,
+  Mondays 8:00 AM, runs `pwsh.exe -NoProfile -File
+  scripts\run-check.ps1`. Logon mode "Interactive only" — runs as Matt's
+  own account, only when he's logged in, no stored password. Verified the
+  WindowsApps-packaged `pwsh.exe` (not the MSI install path) actually
+  launches correctly under Task Scheduler before trusting the real task.
 
 ## 6. Maintenance rule for this file
 
