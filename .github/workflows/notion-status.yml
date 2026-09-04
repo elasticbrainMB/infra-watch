@@ -1,0 +1,76 @@
+name: Notion status sync
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update-notion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update this project's row in the Projects database
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          PROJECT_NAME: "Infra-Watch"
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTION_TOKEN:-}" ] || [ -z "${NOTION_DATABASE_ID:-}" ]; then
+            echo "::error::NOTION_TOKEN and/or NOTION_DATABASE_ID repo secrets are not set."
+            exit 1
+          fi
+
+          LATEST_UPDATE=$(printf '%s' "$COMMIT_MSG" | head -n1 | cut -c1-200)
+          TODAY=$(date -u +%Y-%m-%d)
+
+          # 1. Find this project's row by exact title match.
+          jq -n --arg name "$PROJECT_NAME" \
+            '{filter: {property: "Project", title: {equals: $name}}}' > query.json
+
+          QUERY_STATUS=$(curl -s -o query-result.json -w "%{http_code}" \
+            -X POST "https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query" \
+            -H "Authorization: Bearer ${NOTION_TOKEN}" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            -d @query.json)
+
+          if [ "$QUERY_STATUS" -ge 300 ]; then
+            echo "::error::Notion database query failed (HTTP $QUERY_STATUS): $(cat query-result.json)"
+            exit 1
+          fi
+
+          PAGE_ID=$(jq -r '.results[0].id // empty' query-result.json)
+
+          if [ -z "$PAGE_ID" ]; then
+            echo "::error::No row found in the Projects database with Project = '$PROJECT_NAME'."
+            exit 1
+          fi
+
+          # 2. Update that row's status fields.
+          jq -n \
+            --arg latest "$LATEST_UPDATE" \
+            --arg today "$TODAY" \
+            '{
+              properties: {
+                "Last Updated": {date: {start: $today}},
+                "Latest Update": {rich_text: [{text: {content: $latest}}]},
+                "Source": {select: {name: "GitHub Hook"}}
+              }
+            }' > update.json
+
+          UPDATE_STATUS=$(curl -s -o update-result.json -w "%{http_code}" \
+            -X PATCH "https://api.notion.com/v1/pages/${PAGE_ID}" \
+            -H "Authorization: Bearer ${NOTION_TOKEN}" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            -d @update.json)
+
+          if [ "$UPDATE_STATUS" -ge 300 ]; then
+            echo "::error::Notion page update failed (HTTP $UPDATE_STATUS): $(cat update-result.json)"
+            exit 1
+          fi
+
+          echo "Updated Notion row for $PROJECT_NAME (commit: $COMMIT_URL)"
