@@ -25,7 +25,7 @@ two.
 
 ## Environment
 
-- **Windows 11.** Six components tracked, one entry per component in `config\inventory.json` — hand-maintained, not auto-discovered. Full definition in `PLAN-infra-watch-v1.md`.
+- **Windows 11.** Seven components tracked, one entry per component in `config\inventory.json` — hand-maintained, not auto-discovered. Full definition in `PLAN-infra-watch-v1.md`.
 - **Disk is the source of truth; Discord is a mirror.** A run must succeed with Discord unreachable — `scripts\post-discord.ps1` already behaves this way; do not change that.
 
 ## Use the fact, not a proxy for it
