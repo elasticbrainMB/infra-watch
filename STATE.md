@@ -44,9 +44,8 @@ the installed line is recorded as an informational flag, never folded into
 
 ## 2. In progress
 
-**Sitting 1 complete.** `read-installed.ps1` and `check-releases.ps1` both
-written and run cleanly end-to-end (run `20260903-222833`,
-`records\runs\20260903-222833\`). `TEMPLATE-assessment.md` written.
+**Sitting 1 complete** (committed `b336544`). `read-installed.ps1` and
+`check-releases.ps1` both written and run cleanly end-to-end.
 
 Bug found and fixed during Sitting 1: an unquoted Go-template format string
 (`--format {{.Server.Version}}`) gets mis-parsed by PowerShell's
@@ -56,16 +55,33 @@ command. Also confirmed mid-sitting: invoking a script via `powershell`
 launches Windows PowerShell 5.1, not pwsh 7 — always use `pwsh -File`, per
 `CLAUDE.md`'s two-host warning.
 
-**Sitting 2 (the judgment layer) not yet started.** Next: write
-`assess-update.ps1`, run it against the smallest gap first (`open-webui` or
-`pwsh` — both currently 0 releases behind, so `openclaw` at 3 is the
-smallest real gap to exercise).
+**Sitting 2 (the judgment layer) — assessments produced, not yet
+committed.** `assess-update.ps1` written and run once per component with a
+non-zero gap, against run `20260903-222833`, using
+`z-ai/glm-5.3-20260816` on OpenRouter (GLM-5.2, referenced in Matt's
+personal notes, no longer exists on OpenRouter as of 2026-09-03 — superseded
+by 5.3). Total spend for the run: **$0.2137** against the $0.25/run cap —
+none capped, none malformed.
+
+| Component | Verdict | Why (one line) |
+|---|---|---|
+| openclaw | `do-now` | named Sharp CVE fix + two breaking migrations |
+| node | `do-now` | v24.18.1 fixes 12 CVEs, 3 rated High |
+| docker | `do-now` | multiple named CVEs across the gap (29.6.2–29.8.0) |
+| ollama | `schedule` | no security content, but real stability/perf fixes |
+| n8n | `defer` | 40 releases behind, but no security content and nothing the notes flag as requiring action |
+
+`open-webui` and `pwsh` are already current (0 behind) — `assess-update.ps1`
+exits early with a one-line message for those, no model call made.
+
+Five files now in `records\assessments\*.md`, uncommitted.
+
+**Sitting 3 (schedule and close) not yet started** — `run-check.ps1`,
+Discord wiring, Task Scheduler registration.
 
 ## 3. Blocked, and on whom
 
-Nothing blocked. Sitting 2 spends against the model-call caps
-(`config\model-caps.json`) and hasn't started pending confirmation to
-proceed.
+Nothing blocked. Sitting 3 hasn't started pending confirmation to proceed.
 
 ## 4. Governance items open
 
