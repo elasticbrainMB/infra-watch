@@ -1,0 +1,43 @@
+{
+  "run_id": "20260908-193732",
+  "phase": "verify",
+  "timestamp": "2026-09-08T19:37:38.8897083-05:00",
+  "mode": "no-op-check",
+  "target_version": null,
+  "current": {
+    "node_version": "v24.18.0",
+    "npm_version": "11.16.0",
+    "node_path": "C:\\Program Files\\nodejs\\node.exe",
+    "npm_path": "C:\\Program Files\\nodejs\\npm.ps1",
+    "build": {
+      "configured": false,
+      "command": "",
+      "exit_code": null,
+      "ok": null,
+      "note": "No dependent build command configured for this run — see records\\runbooks\\node.md Phase 0. Pass -BuildCommand to check one."
+    }
+  },
+  "diff": {
+    "node_version": {
+      "before": "v24.18.0",
+      "after": "v24.18.0",
+      "changed": false
+    },
+    "npm_version": {
+      "before": "11.16.0",
+      "after": "11.16.0",
+      "changed": false
+    },
+    "node_path": {
+      "before": "C:\\Program Files\\nodejs\\node.exe",
+      "after": "C:\\Program Files\\nodejs\\node.exe",
+      "changed": false
+    },
+    "npm_path": {
+      "before": "C:\\Program Files\\nodejs\\npm.ps1",
+      "after": "C:\\Program Files\\nodejs\\npm.ps1",
+      "changed": false
+    }
+  },
+  "pass": true
+}

@@ -6,8 +6,8 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-04 — v1 built. All three sittings complete and
-committed; weekly automation is live._
+_Last updated: 2026-09-08 — Notion board (v1.1) added; update-execution
+Sitting 1 (Node read-only proof) run (see §1 and §2 below)._
 
 ## 1. What's tracked
 
@@ -43,11 +43,85 @@ the installed line is recorded as an informational flag, never folded into
 "releases behind." See `tag_pattern` and the `notes` field per component in
 `config\inventory.json`.
 
+**Notion board (v1.1) added 2026-09-08.** A mirror database, "Infra-Watch
+— Component Assessments," now exists in the "AI development" Notion
+workspace: https://app.notion.com/p/dca7751313d8462b9ddd0e4bb1525ce3 — one
+page per tracked component, built against run `20260907-080001`. All 5
+files in `records\assessments\` were mirrored, per Matt's instruction,
+including `openclaw.md`'s stale 2026-09-04 assessment (the 09-07 run's
+attempt for it failed; see that page's own staleness callout). Not yet
+wired into `run-check.ps1`'s weekly automation — this was a one-time
+manual build; a future sitting adds the upsert-on-Component API calls to
+the weekly script.
+
+One deviation from `PLAN-notion-board-v1.1.md`: Verdict is a **Select**
+property, not **Status** — Notion's create-database/update-data-source
+tools have no way to set custom-labeled options on a Status property
+(`STATUS('do-now', ...)` was rejected outright), so Select was substituted.
+Board view grouped by Verdict still gives the same do-now/schedule/defer
+columns.
+
+**Wired into weekly automation 2026-09-09.** `scripts\post-notion.ps1` mirrors
+one component's `records\assessments\<id>.md` to its Notion row (upserting
+on Component: update properties + replace the page body if the row exists,
+create it otherwise). `run-check.ps1` calls it once per successfully
+assessed component, right after the assess-update loop, and never gates on
+its exit code — same principle as the Discord posts: a run must succeed
+with Notion unreachable. Calls Notion's REST API directly via `curl.exe`
+(no MCP dependency at runtime), pinned to `Notion-Version: 2022-06-28`
+(config in `config\notion.json`).
+
+**Not yet functional — needs one manual step from Matt.** The script reads
+`NOTION_API_KEY` from `C:\automation\secrets\infra-watch.env`, which does
+not exist yet. Until it's added, every Notion-sync call fails cleanly (logged,
+non-fatal) and the run otherwise completes normally. To activate: create a
+Notion internal integration, share the "Infra-Watch — Component
+Assessments" database with it (its own "..." menu → Connections — an
+internal integration sees nothing until explicitly connected), then add
+`NOTION_API_KEY=<the integration's secret>` to the secrets file. Regex
+parsing against all 5 real assessment files, and JSON body construction,
+were verified against a real PowerShell 7 interpreter before this was
+wired in; the live HTTP path against Notion's API itself has not been
+exercised (no token available to test with).
+
 ## 2. In progress
 
-Nothing in progress — v1 is built. `run-check.ps1` runs weekly, Mondays
-8am, via Task Scheduler (`infra-watch-weekly`). Next scheduled run:
-9/7/2026. All three sittings below are committed (`b336544`, `353678e`,
+**`PLAN-update-execution-v1.md`'s Sitting 1 (Node read-only proof) ran
+2026-09-08.** Decisions A–G there are locked; this sitting executed §9 step
+1 (close Node's `[VERIFY]` deployment facts), step 2 (write the runbook),
+step 3 (write the read-only snapshot/verify script), and step 4 (dry-run
+it) — all read-only, nothing applied.
+
+- Node's install mechanism is confirmed off the live host: a manual MSI
+  install (nodejs.org's official Windows x64 installer, downloaded to
+  Matt's own `Downloads` and run by hand) — not nvm-windows, not
+  winget-managed. Recorded as a `deployment` block on the `node` entry in
+  `config\inventory.json`: binary/npm paths, ProductCode/UpgradeCode,
+  update-behavior (in-place replace, confirmed read-only via the retained
+  installer's own Property table), and a rollback source (the retained
+  `node-v24.18.0-x64.msi`, hashed). One residual gap, flagged in the block
+  itself: the UpgradeCode match is confirmed only against the *installed*
+  24.18.0 MSI — re-check it against the real v24.20.0 installer before
+  applying.
+- Runbook written: `records\runbooks\node.md`, seeded from
+  `records\assessments\node.md` (run `20260907-080001`, confirmed as the
+  latest successful run for `node` before seeding).
+- New script `scripts\node-update-check.ps1` — one script, `-Phase capture`
+  (Phase 0) / `-Phase verify` (Phase 2), diffs against the same `-RunId`'s
+  capture. Posting to `#decisions` is gated behind `-PostToDiscord` (off by
+  default).
+- **Dry run complete, clean:** run `20260908-193732` — Phase 0 captured
+  `node v24.18.0` / `npm 11.16.0`; Phase 2 re-captured and diffed with
+  nothing changed, `pass: true`, no Discord post sent (flag was off). No
+  live traffic went to Matt's channels.
+- **Stopped, per §9 step 4 / this sitting's hard stop.** The real Node
+  update (24.18.0 → v24.20.0) is Matt's own hand action (§9 step 5) — not
+  run. Node's apply step earns F→E promotion (`TIERS.md`) only after one
+  clean real run; that hasn't happened yet.
+
+v1 itself remains built and unchanged — `run-check.ps1` runs weekly,
+Mondays 8am, via Task Scheduler (`infra-watch-weekly`). Next scheduled run:
+9/14/2026. The three v1 sittings are committed (`b336544`, `353678e`,
 `2a438d1`).
 
 **Sitting 1 complete.** `read-installed.ps1` and

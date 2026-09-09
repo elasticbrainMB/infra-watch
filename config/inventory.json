@@ -100,7 +100,24 @@
         "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
       },
       "blast_radius": "low",
-      "notes": "Build-time tool, not a running service. Node ships two concurrent lines (even-numbered majors go LTS after ~6 months, the newest even major is 'Current' until then, odd majors are always Current) — comparison stays within the installed major (currently 24.x LTS) by design; a newer line existing is noted, not counted."
+      "notes": "Build-time tool, not a running service. Node ships two concurrent lines (even-numbered majors go LTS after ~6 months, the newest even major is 'Current' until then, odd majors are always Current) — comparison stays within the installed major (currently 24.x LTS) by design; a newer line existing is noted, not counted.",
+      "deployment": {
+        "mechanism": "manual MSI installer (official nodejs.org Windows x64 .msi, run by hand — not nvm-windows, not winget-installed)",
+        "mechanism_evidence": "Verified 2026-09-08, read-only, live host: (1) no nvm — no `nvm` command, no NVM_HOME/NVM_SYMLINK env vars, no nvm install directories; (2) `C:\\Program Files\\nodejs` is a real directory, not a symlink/junction (nvm-windows would symlink this path); (3) registry Uninstall entry has WindowsInstaller=1, ProductCode {6178C0C7-8EA8-458F-8060-E49E500A666F}, InstallSource 'C:\\Users\\Matt Becker\\Downloads\\'; (4) the exact installer file (node-v24.18.0-x64.msi, retained in Downloads, dated 2026-07-07) carries that same ProductCode in its own Property table, read via the WindowsInstaller COM API in read-only mode. `winget list --id OpenJS.NodeJS` does match this install for upgrade-tracking, but that reflects winget's ARP-matching against its package database, not the install method — InstallSource is Matt's own Downloads folder, not winget's cache.",
+        "binary_path": "C:\\Program Files\\nodejs\\node.exe",
+        "npm_path": "C:\\Program Files\\nodejs\\npm.ps1",
+        "install_root": "C:\\Program Files\\nodejs",
+        "product_code": "{6178C0C7-8EA8-458F-8060-E49E500A666F}",
+        "upgrade_code": "{47C07A3A-42EF-4213-A85D-8F5A59077C28}",
+        "update_behavior": "In-place replace, not a side-install. The installed MSI has a populated UpgradeCode — the Windows Installer field that drives the standard major-upgrade sequence (RemoveExistingProducts against any prior ProductCode sharing that UpgradeCode) when a newer MSI is run. Confirmed read-only against the retained 24.18.0 installer's own Property table via the WindowsInstaller COM `OpenDatabase` API (opens the file, installs nothing). NOT yet confirmed against the v24.20.0 target — that MSI isn't on this host. Before Matt runs the real update, re-run the same read-only UpgradeCode check against the downloaded v24.20.0 MSI and confirm it matches {47C07A3A-42EF-4213-A85D-8F5A59077C28}.",
+        "rollback_source": {
+          "path": "C:\\Users\\Matt Becker\\Downloads\\node-v24.18.0-x64.msi",
+          "version": "24.18.0",
+          "sha256": "E30CD4CA15529583AFE0EFC978F1AE3AB3A93C2400C222D0752D17900552EBB3",
+          "size_bytes": 32874496,
+          "note": "Pre-existing file in Matt's own Downloads folder, not something this project generated — the 7-day artifact retention (Decision D) doesn't apply to it. Rollback = run this MSI (msiexec /I{6178C0C7-8EA8-458F-8060-E49E500A666F}) to reinstall 24.18.0."
+        }
+      }
     },
     {
       "id": "pwsh",
