@@ -24,7 +24,7 @@ one entry can't point `releases_from` at two repos). Confirmed with Matt
 | openclaw | medium | 2026.7.1 |
 | open-webui | medium | 0.11.3 |
 | pwsh | medium | 7.6.5 |
-| node | low | 24.18.0 |
+| node | low | 24.20.0 |
 
 All seven repo paths for `releases_from` were verified against the GitHub
 API directly (n8n-io/n8n, open-webui/open-webui, openclaw/openclaw,
@@ -71,18 +71,39 @@ with Notion unreachable. Calls Notion's REST API directly via `curl.exe`
 (no MCP dependency at runtime), pinned to `Notion-Version: 2022-06-28`
 (config in `config\notion.json`).
 
-**Not yet functional — needs one manual step from Matt.** The script reads
-`NOTION_API_KEY` from `C:\automation\secrets\infra-watch.env`, which does
-not exist yet. Until it's added, every Notion-sync call fails cleanly (logged,
-non-fatal) and the run otherwise completes normally. To activate: create a
-Notion internal integration, share the "Infra-Watch — Component
-Assessments" database with it (its own "..." menu → Connections — an
-internal integration sees nothing until explicitly connected), then add
-`NOTION_API_KEY=<the integration's secret>` to the secrets file. Regex
-parsing against all 5 real assessment files, and JSON body construction,
-were verified against a real PowerShell 7 interpreter before this was
-wired in; the live HTTP path against Notion's API itself has not been
-exercised (no token available to test with).
+**Live and confirmed working, 2026-09-09.** Matt created a Notion internal
+integration (`infra-watch`) via the Developer portal (`app.notion.com/
+developers/connections` — not the Settings → Connections hub, which is for
+installing prebuilt connectors, not creating one), shared the "Infra-Watch
+— Component Assessments" database with it, and added `NOTION_API_KEY=...`
+to `C:\automation\secrets\infra-watch.env`. Manually ran
+`post-notion.ps1 -ComponentId docker` as a live test: it reported "Updated
+existing Notion page for 'docker'", and the page's last-edited timestamp
+moved to that exact moment with properties and body content intact —
+confirmed independently via the Notion API, not just the script's own
+success message. The full pipeline (auth, upsert lookup, property update,
+body delete-and-rewrite) is verified end to end. Next Monday's scheduled
+`run-check.ps1` run will exercise it for real for the first time.
+
+**Reconcile-current fix added 2026-09-09.** A component that resolves from
+"behind" to "current" (its `releases_behind` drops to 0 in a later run) no
+longer sits with its last stale do-now/schedule/defer verdict indefinitely.
+`run-check.ps1` now also loops over every `current` component that already
+has a `records\assessments\<id>.md` file (i.e. it was behind at some
+point) and calls a new `scripts\reconcile-current.ps1` — no model call,
+purely mechanical — which overwrites that file with a short "current, no
+action needed" note and feeds it through the same `post-notion.ps1` upsert
+as a real assessment, so the Notion row updates too. Added a 4th Notion
+Select option, `current` (green), to the "Verdict" property to receive it.
+A component that has never been behind (never had an assessment file,
+never had a Notion row) is left alone either way — reconciliation only
+touches rows that already exist. Verified offline only: a synthetic
+fixture test, a regression test against all 5 real assessment files
+(unchanged output, confirming no breakage), and an isolated test of the
+new array-merging logic in `run-check.ps1` — no tracked component is
+actually at 0-behind this week, so there's been no live run through this
+path yet. It will get its first real exercise whenever a component
+naturally resolves in a future scheduled run.
 
 ## 2. In progress
 
@@ -114,10 +135,35 @@ it) — all read-only, nothing applied.
   `node v24.18.0` / `npm 11.16.0`; Phase 2 re-captured and diffed with
   nothing changed, `pass: true`, no Discord post sent (flag was off). No
   live traffic went to Matt's channels.
-- **Stopped, per §9 step 4 / this sitting's hard stop.** The real Node
-  update (24.18.0 → v24.20.0) is Matt's own hand action (§9 step 5) — not
-  run. Node's apply step earns F→E promotion (`TIERS.md`) only after one
-  clean real run; that hasn't happened yet.
+**§9 step 5 (the real update) ran 2026-09-08, same day, later sitting.** Node
+went 24.18.0 → 24.20.0.
+
+- The v24.20.0 x64 MSI wasn't on the host; with Matt's explicit approval it
+  was fetched from `nodejs.org` and its SHA-256
+  (`28B69132C35CCC033BF8F2A67CD10C9D75EF5822593363309DA448F2AFFF2D8A`)
+  verified against nodejs.org's own `SHASUMS256.txt` before being trusted.
+- The read-only UpgradeCode check (§9 step 1's residual gap) was re-run
+  against this real target MSI — `{47C07A3A-42EF-4213-A85D-8F5A59077C28}`,
+  matching the recorded UpgradeCode — closing the one gap Sitting 1 flagged.
+- Phase 0/Phase 2 ran for real against run `20260908-220239`: `pass: true`.
+  `node` v24.18.0 → v24.20.0 (exact target), `npm` 11.16.0 → 11.19.0 (bundled
+  bump, expected — not a regression), binary and npm paths unchanged, no
+  side-install. Registry confirms ProductCode
+  `{DC5BBE4F-0668-40DC-A913-83710DA79E35}`, InstallSource still Matt's own
+  Downloads folder.
+- `config\inventory.json`'s node `deployment` block updated: `product_code`
+  now the live one, old code kept in a new `product_code_history`,
+  `update_behavior` closed out with the real-run confirmation.
+- **Per `TIERS.md`'s promotion rule, Node's apply step is now F→E**: one
+  clean Tier-F run (this one — verify passed, no surprises) is exactly the
+  condition that promotes it. The next Node update can run at Tier E
+  (evidence-only) rather than the full first-time gate. Any surprise on a
+  future run sends it back to F per the demotion rule.
+- The retained `node-v24.18.0-x64.msi` in Matt's Downloads stays as the
+  rollback artifact; the new `node-v24.20.0-x64.msi` now also sits there
+  alongside it (not something this project's 7-day retention manages —
+  both are pre-existing files in Matt's own folder, per the runbook's
+  Retention note).
 
 v1 itself remains built and unchanged — `run-check.ps1` runs weekly,
 Mondays 8am, via Task Scheduler (`infra-watch-weekly`). Next scheduled run:

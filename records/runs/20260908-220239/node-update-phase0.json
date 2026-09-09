@@ -1,0 +1,19 @@
+{
+  "run_id": "20260908-220239",
+  "phase": "capture",
+  "timestamp": "2026-09-08T22:02:46.3412422-05:00",
+  "target_version": "v24.20.0",
+  "snapshot": {
+    "node_version": "v24.18.0",
+    "npm_version": "11.16.0",
+    "node_path": "C:\\Program Files\\nodejs\\node.exe",
+    "npm_path": "C:\\Program Files\\nodejs\\npm.ps1",
+    "build": {
+      "configured": false,
+      "command": "",
+      "exit_code": null,
+      "ok": null,
+      "note": "No dependent build command configured for this run — see records\\runbooks\\node.md Phase 0. Pass -BuildCommand to check one."
+    }
+  }
+}

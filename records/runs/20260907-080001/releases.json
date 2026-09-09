@@ -1,0 +1,83 @@
+{
+  "run_id": "20260907-080001",
+  "timestamp": "2026-09-07T08:00:13.0657027-05:00",
+  "components": [
+    {
+      "id": "n8n",
+      "ok": true,
+      "error": null,
+      "installed_version": "2.26.0",
+      "current_version": "n8n@2.37.11",
+      "releases_behind": 42,
+      "minor_boundary_crossed": true,
+      "release_url": "https://github.com/n8n-io/n8n/releases/tag/n8n%402.37.11",
+      "newer_major_line_exists": null
+    },
+    {
+      "id": "open-webui",
+      "ok": true,
+      "error": null,
+      "installed_version": "0.11.3",
+      "current_version": "v0.11.3",
+      "releases_behind": 0,
+      "minor_boundary_crossed": false,
+      "release_url": "https://github.com/open-webui/open-webui/releases/tag/v0.11.3",
+      "newer_major_line_exists": null
+    },
+    {
+      "id": "openclaw",
+      "ok": true,
+      "error": null,
+      "installed_version": "2026.7.1",
+      "current_version": "v2026.9.2",
+      "releases_behind": 4,
+      "minor_boundary_crossed": true,
+      "release_url": "https://github.com/openclaw/openclaw/releases/tag/v2026.9.2",
+      "newer_major_line_exists": null
+    },
+    {
+      "id": "ollama",
+      "ok": true,
+      "error": null,
+      "installed_version": "0.32.6",
+      "current_version": "v0.33.3",
+      "releases_behind": 12,
+      "minor_boundary_crossed": true,
+      "release_url": "https://github.com/ollama/ollama/releases/tag/v0.33.3",
+      "newer_major_line_exists": null
+    },
+    {
+      "id": "docker",
+      "ok": true,
+      "error": null,
+      "installed_version": "29.6.1",
+      "current_version": "docker-v29.8.0",
+      "releases_behind": 5,
+      "minor_boundary_crossed": true,
+      "release_url": "https://github.com/moby/moby/releases/tag/docker-v29.8.0",
+      "newer_major_line_exists": null
+    },
+    {
+      "id": "node",
+      "ok": true,
+      "error": null,
+      "installed_version": "24.18.0",
+      "current_version": "v24.20.0",
+      "releases_behind": 3,
+      "minor_boundary_crossed": true,
+      "release_url": "https://github.com/nodejs/node/releases/tag/v24.20.0",
+      "newer_major_line_exists": "v26.8.1"
+    },
+    {
+      "id": "pwsh",
+      "ok": true,
+      "error": null,
+      "installed_version": "7.6.5",
+      "current_version": "v7.6.5",
+      "releases_behind": 0,
+      "minor_boundary_crossed": false,
+      "release_url": "https://github.com/PowerShell/PowerShell/releases/tag/v7.6.5",
+      "newer_major_line_exists": null
+    }
+  ]
+}

@@ -86,7 +86,36 @@ $assessments = foreach ($rel in $behind) {
 }
 $assessments = @($assessments)
 
-$failed = @($assessments | Where-Object { -not $_.ok })
+Write-Output "--- reconcile-current ($(@($current).Count) component(s) current) ---"
+$reconciled = foreach ($rel in $current) {
+  # Only components that were previously behind (and so already have a
+  # records\assessments\<id>.md file) get reconciled - one that's never
+  # been behind has never had a Notion row either, and stays that way.
+  $assessPath = Join-Path 'C:\automation\infra-watch\records\assessments' "$($rel.id).md"
+  if (-not (Test-Path $assessPath)) { continue }
+  $stage = Invoke-Stage -ScriptPath (Join-Path $ScriptsDir 'reconcile-current.ps1') -ScriptArgs @('-RunId', $RunId, '-ComponentId', $rel.id, '-InventoryPath', $InventoryPath, '-RunsDir', $RunsDir)
+  # Write-Host, not Write-Output: same foreach-as-expression capture
+  # hazard as the assess-update loop above.
+  Write-Host $stage.Output
+  if ($stage.ExitCode -ne 0) {
+    [PSCustomObject]@{ id = $rel.id; ok = $false; verdict = $null }
+    continue
+  }
+  [PSCustomObject]@{ id = $rel.id; ok = $true; verdict = 'current' }
+}
+$reconciled = @($reconciled)
+
+$notionTargets = @(@($assessments) + @($reconciled) | Where-Object { $_.ok })
+Write-Output "--- notion-sync ($(@($notionTargets).Count) component(s)) ---"
+foreach ($a in $notionTargets) {
+  # Never gates on exit code: a failed Notion sync must not fail the run,
+  # same principle as the Discord alerts below. post-notion.ps1 itself
+  # never throws upward - it catches everything and reports to stdout.
+  $notionStage = Invoke-Stage -ScriptPath (Join-Path $ScriptsDir 'post-notion.ps1') -ScriptArgs @('-RunId', $RunId, '-ComponentId', $a.id)
+  Write-Output $notionStage.Output.Trim()
+}
+
+$failed = @($assessments | Where-Object { -not $_.ok }) + @($reconciled | Where-Object { -not $_.ok })
 $doNow = @($assessments | Where-Object { $_.verdict -eq 'do-now' })
 $scheduleHigh = @($assessments | Where-Object { $_.verdict -eq 'schedule' -and $inventoryById[$_.id].blast_radius -eq 'high' })
 $scheduleOther = @($assessments | Where-Object { $_.verdict -eq 'schedule' -and $inventoryById[$_.id].blast_radius -ne 'high' })
@@ -110,13 +139,15 @@ $summary = [PSCustomObject]@{
   behind         = @($behind).Count
   assessed_ok    = @($assessments | Where-Object { $_.ok }).Count
   assessed_failed = @($failed).Count
+  reconciled_current = @($reconciled | Where-Object { $_.ok }).Count
   verdicts       = [PSCustomObject]@{
     'do-now'   = @($doNow).Count
     'schedule' = @($assessments | Where-Object { $_.verdict -eq 'schedule' }).Count
     'defer'    = @($defer).Count
+    'current'  = @($reconciled | Where-Object { $_.ok }).Count
   }
   spend          = $runSpend
-  components     = $assessments
+  components     = @($assessments) + @($reconciled)
 }
 $summaryPath = Join-Path $runDir 'summary.json'
 [System.IO.File]::WriteAllText($summaryPath, ($summary | ConvertTo-Json -Depth 6), $utf8NoBom)
@@ -129,6 +160,8 @@ if (@($doNow).Count -gt 0) { $verdictBits += "$(@($doNow).Count) do-now" }
 $scheduleCount = @($assessments | Where-Object { $_.verdict -eq 'schedule' }).Count
 if ($scheduleCount -gt 0) { $verdictBits += "$scheduleCount schedule" }
 if (@($defer).Count -gt 0) { $verdictBits += "$(@($defer).Count) defer" }
+$reconciledCount = @($reconciled | Where-Object { $_.ok }).Count
+if ($reconciledCount -gt 0) { $verdictBits += "$reconciledCount now-current" }
 $verdictSummary = if ($verdictBits.Count -gt 0) { $verdictBits -join ', ' } else { 'none' }
 
 $alertMsg = "Run ${RunId}: $(@($inventory.components).Count) tracked, $(@($behind).Count) behind, $(@($assessments | Where-Object { $_.ok }).Count) assessed ($verdictSummary)$(if (@($failed).Count -gt 0) { ", $(@($failed).Count) FAILED: $(($failed.id) -join ', ')" }). Spend `$$([math]::Round($runSpend, 4))."

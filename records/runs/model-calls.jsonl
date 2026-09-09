@@ -14,3 +14,8 @@
 {"Timestamp":"2026-09-04T05:36:08.4606657-05:00","RunId":"20260904-053532","Step":"assess-docker","Model":"z-ai/glm-5.3","TokensIn":5278,"TokensOut":235,"Cost":0.00181072,"CheckPassed":null}
 {"Timestamp":"2026-09-04T05:36:12.4879601-05:00","RunId":"20260904-053532","Step":"assess-node","Model":"z-ai/glm-5.3","TokensIn":46476,"TokensOut":187,"Cost":0.00734456,"CheckPassed":null}
 {"Timestamp":"2026-09-04T05:38:22.2603694-05:00","RunId":"20260904-053532","Step":"assess-ollama","Model":"z-ai/glm-5.3","TokensIn":2748,"TokensOut":345,"Cost":0.001938,"CheckPassed":null}
+{"Timestamp":"2026-09-07T08:00:34.7168698-05:00","RunId":"20260907-080001","Step":"assess-n8n","Model":"z-ai/glm-5.3","TokensIn":20070,"TokensOut":1999,"Cost":0.0368936,"CheckPassed":null}
+{"Timestamp":"2026-09-07T08:00:57.6162518-05:00","RunId":"20260907-080001","Step":"assess-openclaw","Model":"z-ai/glm-5.3","TokensIn":92312,"TokensOut":2000,"Cost":0.1380368,"CheckPassed":null}
+{"Timestamp":"2026-09-07T08:01:12.8579464-05:00","RunId":"20260907-080001","Step":"assess-ollama","Model":"z-ai/glm-5.3","TokensIn":2747,"TokensOut":1772,"Cost":0.0116426,"CheckPassed":null}
+{"Timestamp":"2026-09-07T08:01:40.6991073-05:00","RunId":"20260907-080001","Step":"assess-docker","Model":"z-ai/glm-5.3","TokensIn":5277,"TokensOut":1474,"Cost":0.01308185,"CheckPassed":null}
+{"Timestamp":"2026-09-07T08:01:48.1745338-05:00","RunId":"20260907-080001","Step":"assess-node","Model":"z-ai/glm-5.3","TokensIn":46475,"TokensOut":782,"Cost":0.068141,"CheckPassed":null}

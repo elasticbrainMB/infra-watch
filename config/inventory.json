@@ -107,9 +107,13 @@
         "binary_path": "C:\\Program Files\\nodejs\\node.exe",
         "npm_path": "C:\\Program Files\\nodejs\\npm.ps1",
         "install_root": "C:\\Program Files\\nodejs",
-        "product_code": "{6178C0C7-8EA8-458F-8060-E49E500A666F}",
+        "product_code": "{DC5BBE4F-0668-40DC-A913-83710DA79E35}",
+        "product_code_history": [
+          { "version": "24.18.0", "product_code": "{6178C0C7-8EA8-458F-8060-E49E500A666F}" },
+          { "version": "24.20.0", "product_code": "{DC5BBE4F-0668-40DC-A913-83710DA79E35}" }
+        ],
         "upgrade_code": "{47C07A3A-42EF-4213-A85D-8F5A59077C28}",
-        "update_behavior": "In-place replace, not a side-install. The installed MSI has a populated UpgradeCode — the Windows Installer field that drives the standard major-upgrade sequence (RemoveExistingProducts against any prior ProductCode sharing that UpgradeCode) when a newer MSI is run. Confirmed read-only against the retained 24.18.0 installer's own Property table via the WindowsInstaller COM `OpenDatabase` API (opens the file, installs nothing). NOT yet confirmed against the v24.20.0 target — that MSI isn't on this host. Before Matt runs the real update, re-run the same read-only UpgradeCode check against the downloaded v24.20.0 MSI and confirm it matches {47C07A3A-42EF-4213-A85D-8F5A59077C28}.",
+        "update_behavior": "In-place replace, not a side-install. The installed MSI has a populated UpgradeCode — the Windows Installer field that drives the standard major-upgrade sequence (RemoveExistingProducts against any prior ProductCode sharing that UpgradeCode) when a newer MSI is run. Confirmed read-only against the retained 24.18.0 installer's own Property table via the WindowsInstaller COM `OpenDatabase` API (opens the file, installs nothing), then re-confirmed 2026-09-08 against the downloaded v24.20.0 target MSI before Matt applied it — both carry UpgradeCode {47C07A3A-42EF-4213-A85D-8F5A59077C28}. The real update ran 2026-09-08 (run `20260908-220239`): registry confirms the live install now carries ProductCode {DC5BBE4F-0668-40DC-A913-83710DA79E35}, DisplayVersion 24.20.0, InstallSource still Matt's own Downloads folder — in-place replace behaved exactly as predicted.",
         "rollback_source": {
           "path": "C:\\Users\\Matt Becker\\Downloads\\node-v24.18.0-x64.msi",
           "version": "24.18.0",

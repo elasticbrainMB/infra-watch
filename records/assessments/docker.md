@@ -1,6 +1,6 @@
 # Docker Engine — 29.6.1 → docker-v29.8.0
 
-_Assessment written 2026-09-04, run `20260904-053532`._
+_Assessment written 2026-09-07, run `20260907-080001`._
 
 | Field | Value |
 |---|---|
@@ -14,11 +14,11 @@ _Assessment written 2026-09-04, run `20260904-053532`._
 
 ## Verdict: `do-now`
 
-29.6.2 fixes five CVEs in BuildKit (command injection via Git bundle checkout, /tmp content removal, destination directory validation bypass, and more), and 29.7.0 fixes CVE-2026-17106 in go-archive. These are explicitly labeled security fixes affecting Docker Engine itself, so this shouldn't sit behind other work.
+The notes explicitly flag security fixes: 29.6.2 patches five CVEs including command injection via Git source checkout (CVE-2026-15793) and an LLB file operation that can wipe /tmp contents (CVE-2026-15791), and 29.7.0 fixes CVE-2026-17106 in go-archive. 29.8.0 adds further hardening such as a configurable default AppArmor profile template and fixing a world-writable container root under the btrfs storage driver. Jumping straight to 29.8.0 also sidesteps the image-pull and docker cp regressions that 29.7.0 introduced and 29.7.1/29.7.2 had to patch.
 
 ## What it will take
 
-Nothing unusual beyond the normal update process (package upgrade plus a daemon restart, which will restart running containers unless live-restore is on). One optional config tweak: 29.7.0 now honors daemon-wide concurrent download/upload limits, so set "max-concurrent-downloads"/"max-concurrent-uploads" to 0 if you want the old unlimited behavior.
+Nothing beyond the normal update process (package upgrade plus daemon restart); the one config wrinkle is that 29.7.0 now honors daemon-wide concurrent download/upload limits, so set "max-concurrent-downloads" and "max-concurrent-uploads" to 0 if the previous unlimited pull/push behavior is wanted.
 
 ## Source
 

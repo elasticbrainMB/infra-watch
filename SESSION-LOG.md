@@ -75,6 +75,93 @@ plan had been built yet.
 
 ---
 
+## 2026-09-08 (later, same day) — update-execution, Sitting 2: Node update applied
+
+**Starting point:** Sitting 1 above closed every `[VERIFY]` gap except one —
+the UpgradeCode match was confirmed only against the *installed* 24.18.0
+MSI, not the real v24.20.0 target, which wasn't on the host yet. §9 step 5
+(Matt's go-ahead to apply) was still pending.
+
+- **Chunk A (prep/pre-checks).** The v24.20.0 x64 MSI wasn't found anywhere
+  on the host (checked Downloads, Desktop, `C:\automation`) — only the
+  retained 24.18.0 rollback MSI was present. Per the runbook's STOP
+  condition, asked Matt how to proceed rather than guessing; he approved
+  fetching it directly. Pulled `SHASUMS256.txt` from `nodejs.org` first to
+  get the published hash, confirmed the file size via a HEAD request, told
+  Matt the exact filename/source/size, then downloaded it and verified its
+  SHA-256 matched the published value exactly before trusting it.
+  Re-ran the same read-only WindowsInstaller COM UpgradeCode check from
+  Sitting 1 against this real target MSI (once under Windows PowerShell,
+  once re-run under pwsh 7 for discipline) — `{47C07A3A-42EF-4213-A85D-8F5A59077C28}`,
+  matching the recorded UpgradeCode. This closed Sitting 1's one residual
+  gap: the in-place major-upgrade replace assumption now holds against the
+  real target, not just the installed version. Ran Phase 0 capture (run
+  `20260908-220239`): `node v24.18.0` / `npm 11.16.0`, unchanged paths.
+  Reported results and handed Matt the exact `msiexec /i ... /passive`
+  command, then stopped.
+- **Chunk B (verify and record), on Matt's "installed".** Phase 2 verify
+  against the same run ID: **PASS**. `node` v24.18.0 → v24.20.0 (exact
+  target), `npm` 11.16.0 → 11.19.0 (bundled bump — expected, not a
+  regression, per the runbook's own "don't assume it matches 11.16.0"
+  note), binary and npm paths unchanged, no side-install. Registry
+  cross-check confirmed the live ProductCode
+  (`{DC5BBE4F-0668-40DC-A913-83710DA79E35}`) and InstallSource (still
+  Matt's own Downloads folder) — matches the new MSI's own Property table,
+  as expected for a real in-place upgrade.
+- Updated `config\inventory.json`'s node `deployment` block: `product_code`
+  now the live one (old code preserved in a new `product_code_history`
+  array rather than discarded), `update_behavior` closed out with the
+  real-run confirmation.
+- **Per `TIERS.md`'s promotion rule, Node's apply step moves F→E** — this
+  was the one clean Tier-F run the rule requires. No surprise occurred
+  (the npm bump was anticipated, not a regression), so nothing triggers the
+  demotion rule.
+- **Discovered mid-sitting: the working tree already carried unrelated,
+  substantial uncommitted work** (a Notion-sync feature and a
+  reconcile-current fix, dated 2026-09-09, touching `STATE.md`,
+  `SESSION-LOG.md`, `PLAN-update-execution-v1.md`, four assessment files,
+  `run-check.ps1`, and more — none of it done in this sitting). Caught this
+  before compounding it: an early edit of mine had clobbered the
+  pre-existing Notion "Last updated" note in `STATE.md`; reverted that
+  specific damage immediately, restoring the original text, before
+  finishing this sitting's own additions in the non-overlapping section.
+  Flagged the entanglement to Matt before touching `git commit` — see his
+  answer, if given, for how the commit(s) were actually scoped.
+
+---
+
+## 2026-09-09 (later same day) — Notion sync confirmed live
+
+**Starting point:** the sitting above wired `post-notion.ps1` into
+`run-check.ps1` but couldn't test the live HTTP path - no Notion API key
+existed yet, and creating one isn't something this tool can do on Matt's
+behalf.
+
+- Matt asked where to create a new integration, since Settings →
+  Connections only showed one existing internal connection
+  (`project-status`, used by the unrelated portfolio-tracker GitHub
+  Action) with no obvious "add new" button. Confirmed via Notion's own
+  help docs that this wasn't a free-plan cap - the Connections hub Matt
+  was on is for installing prebuilt connectors/MCP servers, while creating
+  a new custom integration happens at the separate Developer portal
+  (`app.notion.com/developers/connections`).
+- Matt created an `infra-watch` internal integration there, shared the
+  "Infra-Watch — Component Assessments" database with it, and added
+  `NOTION_API_KEY=...` to `C:\automation\secrets\infra-watch.env`.
+- Ran a live one-component test (`post-notion.ps1 -ComponentId docker`)
+  from an actual terminal on the mini PC. It reported success; independently
+  confirmed via the Notion API that the page's `last_edited_time` moved to
+  that exact moment and its properties/body content came through unchanged
+  and undamaged by the delete-and-rewrite cycle. This is the first real
+  proof the auth, the upsert-by-Component lookup, the property PATCH, and
+  the block delete+append all work against Notion's actual API, not just
+  against a mocked/local test.
+- The Notion board is now fully live. Nothing else is pending on this
+  thread - the next scheduled Monday `run-check.ps1` run will be the first
+  real unattended exercise of it.
+
+---
+
 ## 2026-09-09 — Notion board wired into weekly automation
 
 **Starting point:** the 09-08 sitting built the Notion database and mirrored
@@ -247,3 +334,58 @@ section for full detail): Notion board (v1.1), real OSV/NVD vulnerability
 lookups, extending the inventory beyond six components, and a separate
 model-version-review track (Qwen/GLM) that's explicitly out of scope for
 this project and not being built toward.
+---
+
+## 2026-09-09 (later still) — reconcile-current fix for resolved components
+
+**Starting point:** the sync just proved live end-to-end, but Matt asked a
+sharp follow-up: once a component that was `do-now`/`schedule`/`defer`
+actually gets updated and its `releases_behind` drops to 0, does its
+Notion row (and its assessment file) actually show "current," or does it
+just keep showing the old stale verdict forever? Answer at the time was
+the latter — nothing in the pipeline ever revisited a component once it
+left the `behind` list, so a resolved component would sit with its last
+real verdict indefinitely, until the *next* release put it back in the
+`behind` list and triggered a fresh `assess-update.ps1` call. Matt asked
+for the fix.
+
+- Added `scripts\reconcile-current.ps1` — deliberately not a variant of
+  `assess-update.ps1`: no model call, no judgment to make. It takes a
+  component id that `check-releases.ps1` already reported at
+  `releases_behind: 0`, confirms that as a sanity check (throws if it
+  isn't actually 0), and — only if `records\assessments\<id>.md` already
+  exists for it (meaning it was behind at some point and has a real
+  verdict sitting there) — overwrites that file with a short "current, no
+  action needed" note. A component that's never been behind has never had
+  an assessment file or a Notion row, and reconciliation leaves it alone.
+- `run-check.ps1` now loops over every `current` component right after the
+  `assess-update` loop, calling `reconcile-current.ps1` for any that have
+  a prior assessment file. Its output is merged with the real assessments
+  before the Notion-sync loop, so a reconciled component's file gets
+  upserted to Notion exactly like any other — same `post-notion.ps1`
+  call, no separate code path. Extended the run summary and the `#runs`
+  Discord alert to call out "N now-current" separately from the do-now/
+  schedule/defer counts.
+- Patched `post-notion.ps1`'s parsing regexes to accept `current` as a 4th
+  verdict value (alongside `do-now`/`schedule`/`defer`) and to also accept
+  a "Current release:" source-line phrasing (the reconcile note has no
+  "raw release notes" to point to, so it names the release it's now
+  current with instead).
+- Added a 4th Select option, `current` (green), to the "Verdict" property
+  on the "Infra-Watch — Component Assessments" Notion database. Existing
+  option data for the other three was preserved by the `ALTER COLUMN`
+  call.
+- **Verified offline only, three ways:** a synthetic fixture (fake
+  component, fake prior assessment, fake 0-behind release data) exercised
+  the full reconcile → parse → format path end to end; a regression run
+  of `post-notion.ps1` against all five real assessment files came back
+  byte-identical to before the regex change, confirming nothing broke for
+  the normal case; and an isolated test of `run-check.ps1`'s new
+  array-merging logic (`$notionTargets`, `$failed`, `components`) covered
+  the empty-array and single-item-array edge cases PowerShell is known to
+  silently unwrap. All three passed. No live test against a real
+  currently-current component was possible this sitting — none of the
+  five tracked components (`docker`, `n8n`, `node`, `ollama`, `openclaw`)
+  is actually at `releases_behind: 0` this week; they're all genuinely
+  still behind. This path gets its first live exercise whenever a
+  component naturally resolves in a future scheduled run.

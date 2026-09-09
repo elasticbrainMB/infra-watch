@@ -286,7 +286,7 @@ reads them differently:
 |---|---|---|
 | **high** (docker, n8n, ollama) | Tier **F**, always | Mandatory Phase-0 data backup + a rollback path confirmed *before* applying; scheduled window; full smoke test in verify. A `do-now` here means "deliberately and soon," **not** "unattended at 8am." |
 | **medium** (open-webui, openclaw, pwsh) | Tier F first time, then E | Backup still taken; lighter smoke test where no dependents exist. **Consequence of Decision E (blast_radius alone):** a migration such as openclaw's `doctor --fix` does *not* auto-promote to full-F — a medium item with a migration is run under the medium gate, deliberately. |
-| **low** (node) | Tier E / near-checklist | Version-pin + verify version, in place, rollback = reinstall prior. |
+| **low** (node) | **Stub — not the full flow** | Version-pin, install in place, verify the new version, keep the prior installer for the 7-day window. No phased runbook, no automated verify-with-Discord, no data backup — nothing stateful to protect. See §5a. |
 
 `TIERS.md`'s promotion/demotion rules fit this exactly: a component's apply
 step moves F→E only *after one clean F run*, and **any surprise — even a
@@ -314,6 +314,40 @@ openclaw.md` on disk is from the `20260904` run, not the latest `20260907`
 one (which failed on the cap), so it is stale. The generator must refuse to
 build a runbook from an assessment whose `run_id` isn't the latest successful
 one for that component.
+
+### 5a. Amendment 2026-09-08 — low-blast items get a stub, not the full flow
+
+Surfaced by the Node proof (Sitting 1): the full apparatus — a phased runbook,
+an automated capture/verify script, a Discord pass/fail post — is right-sized
+for the high-blast targets it exists for (n8n's forward-only migrations, the
+engine bouncing every container, Ollama's dependents), but it is *heavier than
+the risk warrants* for a `low`-blast, stateless component like Node, whose
+whole rollback is "reinstall the installer you kept." Applying the heavy flow
+uniformly is the failure mode that makes a lightweight process get abandoned:
+if a two-minute MSI bump requires reading a five-phase document, the document
+stops getting read.
+
+So the gate genuinely differentiates, consistent with Decision E
+(blast_radius alone):
+
+- **`low`-blast → a stub.** Confirm the target version, install in place,
+  confirm the new version, retain the prior installer for the 7-day window.
+  That's the whole runbook. No data backup (nothing stateful), no automated
+  verify step, no Discord post.
+- **`medium` / `high`-blast → the full §3–§4 flow.** This is where the
+  Phase-0 backup, the automated read-only verify, and the tested rollback
+  path earn their keep.
+
+Note on Node's Sitting-1 artifacts: they are heavier than this standing bar
+(a full runbook and a capture/verify script were written). That was
+deliberate — Node was the *rehearsal target* chosen to shake the machinery
+out on the safest possible path, not because a Node bump needs that much
+ceremony. Those artifacts stay as the proven reference implementation; the
+**stub is what gets templated forward to any future low-blast component**, and
+the full flow is what gets templated to the medium/high ones. Among the seven
+tracked components, `node` is the only `low` today, so in practice the stub
+applies narrowly — but the principle keeps the gate honest as the inventory
+grows.
 
 ---
 
