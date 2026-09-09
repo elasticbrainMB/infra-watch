@@ -127,7 +127,44 @@
         "tag_pattern": "^docker-v(\\d+\\.\\d+\\.\\d+)$"
       },
       "blast_radius": "high",
-      "notes": "Every tracked container runs inside this. moby/moby's release feed also carries client/vX and api/vX tags plus -rc prereleases under the same repo — tag_pattern excludes both. Human-readable release notes cross-reference at https://docs.docker.com/engine/release-notes/."
+      "notes": "Every tracked container runs inside this. moby/moby's release feed also carries client/vX and api/vX tags plus -rc prereleases under the same repo — tag_pattern excludes both. Human-readable release notes cross-reference at https://docs.docker.com/engine/release-notes/.",
+      "deployment": {
+        "mechanism": "Docker Desktop (WSL2 backend) — self-updates via Settings > Software Updates in the app, or a downloaded 'Docker Desktop Installer.exe' from desktop.docker.com. Not a bare engine package, not winget-managed.",
+        "mechanism_evidence": "Verified 2026-09-09, read-only, live host: (1) `docker info` reports OSType linux, Kernel Version 6.18.33.1-microsoft-standard-WSL2 — WSL2 backend, not Hyper-V; (2) registry Uninstall entry `DisplayName: Docker Desktop`, `Publisher: Docker Inc.`, `UninstallString` invoking 'Docker Desktop Installer.exe' \"uninstall\"; (3) six 'Docker Desktop'/'com.docker.backend' processes running from `C:\\Program Files\\Docker\\Docker\\`.",
+        "desktop_app_version_history": [
+          { "desktop_version": "4.81.0", "build": "232925", "engine_version": "29.6.1", "note": "Installed prior to this sitting." },
+          { "desktop_version": "4.90.0", "build": "238679", "engine_version": "29.7.2", "installed_on": "2026-09-09", "note": "Installed via Desktop's own in-app updater (Matt's hand action). Desktop restarted fully on its own — process start times ~11 min after Phase 0 capture confirmed a fresh restart despite no visible restart prompt." }
+        ],
+        "current_version": "29.7.2",
+        "target_version_not_reached": "29.8.0 (the version pinned by the 2026-09-07 assessment, run 20260907-080001) was NOT reached. Confirmed live 2026-09-09: Docker Desktop's newest available release is 4.90.0 (published 2026-09-07), and it bundles engine 29.7.2, not 29.8.0 — Docker has not yet shipped a Desktop release bundling 29.8.0, even though that engine tag has existed since 2026-09-03. No further 'check for updates' cycle can reach 29.8.0 today; this requires a future Desktop release. Re-assessment will naturally pick up the remaining gap (29.7.2 -> 29.8.0) on a future weekly run once Desktop catches up.",
+        "version_history": [
+          { "version": "29.6.1", "note": "Installed prior to this sitting." },
+          { "version": "29.7.2", "installed_on": "2026-09-09", "desktop_version": "4.90.0", "verify_run": "20260909-062238", "verify_result": "Fleet/dependents/tracked-container checks all PASS (0 missing, 0 not-running, 0 added across all 6 containers on the engine; n8n/open-webui/openclaw each pass their own health check before and after; both open-webui and openclaw still reach Ollama via host.docker.internal). Target-version check itself FAILED — engine landed on 29.7.2, not the pinned 29.8.0 (see target_version_not_reached). Matt's explicit call: accept 29.7.2 and record it now rather than hold the entry stale at 29.6.1." }
+        ],
+        "downgrade_safety_research": {
+          "range_checked": "docker-v29.6.1 -> docker-v29.8.0 (target), individually against GitHub release notes for docker-v29.6.2, docker-v29.7.0, docker-v29.7.1, docker-v29.7.2, docker-v29.8.0 — not just a summarized docs page.",
+          "finding": "No storage-format, data-layout, graphdriver, or containerd-snapshotter change is named in any of the five release notes across this range. The only functionally relevant change found is 29.7.0 starting to honor `max-concurrent-downloads`/`max-concurrent-uploads` (daemon.json, unrelated to storage format).",
+          "caveat": "This is 'no breaking change publicly named across the full range', not a Docker-issued downgrade certification — Docker does not publish explicit downgrade guarantees for the engine. Recorded as evidence for Matt's Phase 4 decision if a rollback is ever needed, not as a guarantee."
+        },
+        "daemon_json": {
+          "path": "C:\\Users\\Matt Becker\\.docker\\daemon.json",
+          "max_concurrent_downloads": null,
+          "max_concurrent_uploads": null,
+          "decision": "Matt's explicit call, 2026-09-09: accept the new default (3 downloads / 5 uploads per Docker's own dockerd reference docs) rather than pin both to 0 for unlimited. No daemon.json edit made — confirmed unchanged before and after the update via Phase 0/Phase 2 capture."
+        },
+        "rollback_installer_29.6.1": {
+          "status": "Fetched 2026-09-09 with Matt's explicit approval (none was retained on host — the only local 'Docker Desktop Installer.exe' was the live bootstrapper inside the install directory, itself already updated to the new version, not a separately retained artifact). Now the rollback artifact for the 7-day window (Decision D) following the 2026-09-09 update.",
+          "path": "C:\\Users\\Matt Becker\\Downloads\\Docker Desktop Installer-4.81.0.exe",
+          "desktop_version": "4.81.0",
+          "build": "232925",
+          "engine_version_bundled": "29.6.1",
+          "source_url": "https://desktop.docker.com/win/main/amd64/232925/Docker Desktop Installer.exe",
+          "sha256": "8635CD74C10E5A37ED0EFA7DC55ABCECF7997815CB77DF6FB2488EC3EB42646D",
+          "size_bytes": 631263152,
+          "verification": "Get-FileHash on the downloaded file matches Docker's own published checksums.txt for build 232925 exactly (fetched from the same desktop.docker.com path, analogous to Ollama's sha256sum.txt / Node's SHASUMS256.txt). File size and embedded FileVersion/ProductVersion (4.81.0.232925) both cross-checked against the live pre-update install too.",
+          "retention_window_ends": "2026-09-16"
+        }
+      }
     },
     {
       "id": "node",

@@ -1,0 +1,172 @@
+{
+  "run_id": "20260909-062253",
+  "phase": "verify",
+  "timestamp": "2026-09-09T06:22:57.0404853-05:00",
+  "mode": "no-op-check",
+  "target_version": null,
+  "current": {
+    "engine_version": "29.6.1",
+    "fleet": {
+      "raw": "{\"Command\":\"\\\"bash start.sh\\\"\",\"CreatedAt\":\"2026-09-03 20:59:32 -0500 CDT\",\"HealthStatus\":\"healthy\",\"ID\":\"3ed84767119e\",\"Image\":\"ghcr.io/open-webui/open-webui:v0.11.3\",\"Labels\":\"com.docker.compose.config-hash=d37b89a8b2fc888e11d4b111dd9b1cdfefbe2c79fac0b49f07c93316efb58106,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:751b617714b91e4cfd0186a509c72480c858e012976103b09a30dad053c36175,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\open-webui\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\open-webui,com.docker.compose.project=open-webui,com.docker.compose.replace=open-webui,com.docker.compose.service=open-webui,com.docker.compose.version=5.3.0,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/8080/tcp=127.0.0.1:3000,100.115.99.39:3000,org.opencontainers.image.created=2026-08-31T14:56:42.573Z,org.opencontainers.image.description=User-friendly AI Interface (Supports Ollama, OpenAI API, ...),org.opencontainers.image.licenses=NOASSERTION,org.opencontainers.image.revision=2a960a59fe1dbbd35282f0556b3666d81102e781,org.opencontainers.image.source=https://github.com/open-webui/open-webui,org.opencontainers.image.title=open-webui,org.opencontainers.image.url=https://github.com/open-webui/open-webui,org.opencontainers.image.version=0.11.3\",\"LocalVolumes\":\"1\",\"Mounts\":\"open-webui\",\"Names\":\"open-webui\",\"Networks\":\"open-webui_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"127.0.0.1:3000-\\u003e8080/tcp\",\"RunningFor\":\"5 days ago\",\"Size\":\"60.7MB (virtual 5.38GB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes (healthy)\"}\r\n{\"Command\":\"\\\"./entrypoint.sh\\\"\",\"CreatedAt\":\"2026-09-02 17:40:27 -0500 CDT\",\"HealthStatus\":\"none\",\"ID\":\"f5aed1c50119\",\"Image\":\"ghcr.io/remsky/kokoro-fastapi-cpu\",\"Labels\":\"desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/8880/tcp=127.0.0.1:8880,100.115.99.39:8880,org.opencontainers.image.created=2026-08-24T06:36:29Z,org.opencontainers.image.description=Kokoro TTS served via FastAPI. CPU build.,org.opencontainers.image.licenses=Apache-2.0,org.opencontainers.image.revision=d5d1a69566c47659b7ae434cf62cafb124660183,org.opencontainers.image.source=https://github.com/remsky/Kokoro-FastAPI,org.opencontainers.image.title=Kokoro-FastAPI (CPU),org.opencontainers.image.url=https://github.com/remsky/Kokoro-FastAPI,org.opencontainers.image.version=v0.8.1\",\"LocalVolumes\":\"0\",\"Mounts\":\"\",\"Names\":\"kokoro\",\"Networks\":\"bridge\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"127.0.0.1:8880-\\u003e8880/tcp\",\"RunningFor\":\"6 days ago\",\"Size\":\"5.53MB (virtual 3.35GB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes\"}\r\n{\"Command\":\"\\\"tini -- /docker-ent…\\\"\",\"CreatedAt\":\"2026-07-25 10:30:50 -0500 CDT\",\"HealthStatus\":\"none\",\"ID\":\"3d772e5b4510\",\"Image\":\"n8nio/n8n:2.26.0\",\"Labels\":\"com.docker.compose.config-hash=63c6033690cc1fda40ca821528f4ca15c7942ad171ba1458e8f9e999f2c69d2c,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:9fd68b77fe9c8560e9dad142ba1be109c17b4376121bafc7dac8c2a3c72d8e79,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\n8n\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\n8n,com.docker.compose.project=n8n,com.docker.compose.replace=n8n,com.docker.compose.service=n8n,com.docker.compose.version=5.3.0,com.docker.dhi.chain-id=sha256:db3d10d1e2a9937f10f0113f6039ae034f874aa606bb1180f86a60cc7a518713,com.docker.dhi.compliance=cis,com.docker.dhi.created=2026-05-22T08:38:22Z,com.docker.dhi.date.end-of-life=2028-04-30,com.docker.dhi.date.release=2025-05-06,com.docker.dhi.definition=image/node/alpine-3.22/24-dev,com.docker.dhi.distro=alpine-3.22,com.docker.dhi.entitlement=public,com.docker.dhi.flavor=,com.docker.dhi.name=dhi/node,com.docker.dhi.package-manager=apk,com.docker.dhi.shell=busybox,com.docker.dhi.title=Node.js 24.x (dev),com.docker.dhi.url=https://dhi.io/catalog/node,com.docker.dhi.variant=dev,com.docker.dhi.version=24.15.0-alpine3.22-dev,desktop.docker.io/binds/0/Source=n8n_data,desktop.docker.io/binds/0/SourceKind=hostFile,desktop.docker.io/binds/0/Target=/home/node/.n8n,desktop.docker.io/binds/1/Source=C:/automation/caddy/rules,desktop.docker.io/binds/1/SourceKind=hostFile,desktop.docker.io/binds/1/Target=/home/node/.n8n-files/rules,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/5678/tcp=127.0.0.1:5678,100.115.99.39:5678,org.opencontainers.image.description=Workflow Automation Tool,org.opencontainers.image.source=https://github.com/n8n-io/n8n,org.opencontainers.image.title=n8n,org.opencontainers.image.url=https://n8n.io,org.opencontainers.image.version=2.26.0\",\"LocalVolumes\":\"1\",\"Mounts\":\"n8n_data,/run/desktop/m…\",\"Names\":\"n8n\",\"Networks\":\"n8n_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"127.0.0.1:5678-\\u003e5678/tcp\",\"RunningFor\":\"6 weeks ago\",\"Size\":\"60.6MB (virtual 2.14GB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes\"}\r\n{\"Command\":\"\\\"/usr/local/searxng/…\\\"\",\"CreatedAt\":\"2026-07-19 20:10:18 -0500 CDT\",\"HealthStatus\":\"none\",\"ID\":\"0cab008f74a2\",\"Image\":\"searxng/searxng:2026.7.19-6da6eee26\",\"Labels\":\"com.docker.compose.config-hash=609966b3a7f4c07f13b387a8f7e478e9bb8bec79e9921c5ab92222b6717dad9c,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:b8ca38ba06eea544d7555e88321e212ddc0d5c3c7de055419cfb2e5c6bf30812,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\searxng\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\searxng,com.docker.compose.project=searxng,com.docker.compose.replace=searxng-core,com.docker.compose.service=core,com.docker.compose.version=5.3.0,desktop.docker.io/binds/0/Source=C:\\\\automation\\\\searxng\\\\core-config,desktop.docker.io/binds/0/SourceKind=hostFile,desktop.docker.io/binds/0/Target=/etc/searxng,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/8080/tcp=127.0.0.1:8080,100.115.99.39:8080,org.opencontainers.image.created=2026-07-19T15:09:44Z,org.opencontainers.image.description=SearXNG is a metasearch engine. Users are neither tracked nor profiled.,org.opencontainers.image.documentation=https://docs.searxng.org/admin/installation-docker,org.opencontainers.image.licenses=AGPL-3.0-or-later,org.opencontainers.image.revision=6da6eee265daeb4a62ab638d6921522bf405de69,org.opencontainers.image.source=https://github.com/searxng/searxng,org.opencontainers.image.title=SearXNG,org.opencontainers.image.url=https://searxng.org,org.opencontainers.image.version=2026.7.19-6da6eee26\",\"LocalVolumes\":\"1\",\"Mounts\":\"/run/desktop/m…,searxng_core-d…\",\"Names\":\"searxng-core\",\"Networks\":\"searxng_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"127.0.0.1:8080-\\u003e8080/tcp\",\"RunningFor\":\"7 weeks ago\",\"Size\":\"524kB (virtual 280MB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes\"}\r\n{\"Command\":\"\\\"docker-entrypoint.s…\\\"\",\"CreatedAt\":\"2026-07-19 19:52:06 -0500 CDT\",\"HealthStatus\":\"none\",\"ID\":\"6405e052d74d\",\"Image\":\"valkey/valkey:9-alpine\",\"Labels\":\"com.docker.compose.config-hash=fcf057f5c02b49574419be43e3eabbf9d85e95c211e34c1d06e476b9310700f1,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:c9b77919daeba2c02ad954d0c844cc4e7142069d177b89c5fd771f405daf9e02,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\searxng\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\searxng,com.docker.compose.project=searxng,com.docker.compose.service=valkey,com.docker.compose.version=5.3.0,desktop.docker.io/ports.scheme=v2,org.opencontainers.image.source=https://github.com/valkey-io/valkey\",\"LocalVolumes\":\"1\",\"Mounts\":\"searxng_valkey…\",\"Names\":\"searxng-valkey\",\"Networks\":\"searxng_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"6379/tcp\",\"RunningFor\":\"7 weeks ago\",\"Size\":\"4.1kB (virtual 47MB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes\"}\r\n{\"Command\":\"\\\"tini -s -- node ope…\\\"\",\"CreatedAt\":\"2026-07-17 09:48:24 -0500 CDT\",\"HealthStatus\":\"healthy\",\"ID\":\"75203736d49e\",\"Image\":\"openclaw/openclaw:2026.7.1\",\"Labels\":\"com.docker.compose.config-hash=cd34a3fc4dba4e54d49eb4fd1b28a193fc4dbd8e2bb326515991fcb988387beb,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:6a31d44b2944e7adcd2b582bf6fb463111264ebca97a0201795b799135bd102c,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\openclaw\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\openclaw,com.docker.compose.project=openclaw,com.docker.compose.replace=openclaw,com.docker.compose.service=openclaw,com.docker.compose.version=5.3.0,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/18789/tcp=127.0.0.1:18789,100.115.99.39:18789,org.opencontainers.image.base.digest=sha256:242549cd46785b480c832479a730f4f2a20865d61ea2e404fdb2a5c3d3b73ecf,org.opencontainers.image.base.name=docker.io/library/node:24-bookworm-slim,org.opencontainers.image.created=2026-07-13T13:54:35Z,org.opencontainers.image.description=OpenClaw gateway and CLI runtime container image,org.opencontainers.image.documentation=https://docs.openclaw.ai/install/docker,org.opencontainers.image.licenses=MIT,org.opencontainers.image.revision=2d2ddc43d0dcf71f31283d780f9fe9ff4cc04fe4,org.opencontainers.image.source=https://github.com/openclaw/openclaw,org.opencontainers.image.title=OpenClaw,org.opencontainers.image.url=https://openclaw.ai,org.opencontainers.image.version=2026.7.1\",\"LocalVolumes\":\"1\",\"Mounts\":\"openclaw_data\",\"Names\":\"openclaw\",\"Networks\":\"openclaw_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"127.0.0.1:18789-\\u003e18789/tcp\",\"RunningFor\":\"7 weeks ago\",\"Size\":\"48.4MB (virtual 1.41GB)\",\"State\":\"running\",\"Status\":\"Up 55 minutes (healthy)\"}",
+      "containers": [
+        {
+          "name": "open-webui",
+          "image": "ghcr.io/open-webui/open-webui:v0.11.3",
+          "state": "running",
+          "status": "Up 55 minutes (healthy)",
+          "health_status": "healthy"
+        },
+        {
+          "name": "kokoro",
+          "image": "ghcr.io/remsky/kokoro-fastapi-cpu",
+          "state": "running",
+          "status": "Up 55 minutes",
+          "health_status": "none"
+        },
+        {
+          "name": "n8n",
+          "image": "n8nio/n8n:2.26.0",
+          "state": "running",
+          "status": "Up 55 minutes",
+          "health_status": "none"
+        },
+        {
+          "name": "searxng-core",
+          "image": "searxng/searxng:2026.7.19-6da6eee26",
+          "state": "running",
+          "status": "Up 55 minutes",
+          "health_status": "none"
+        },
+        {
+          "name": "searxng-valkey",
+          "image": "valkey/valkey:9-alpine",
+          "state": "running",
+          "status": "Up 55 minutes",
+          "health_status": "none"
+        },
+        {
+          "name": "openclaw",
+          "image": "openclaw/openclaw:2026.7.1",
+          "state": "running",
+          "status": "Up 55 minutes (healthy)",
+          "health_status": "healthy"
+        }
+      ]
+    },
+    "tracked": {
+      "n8n": {
+        "docker_health": "null",
+        "healthz": {
+          "ok": true,
+          "http_code": 200,
+          "body": "{\"status\":\"ok\"}",
+          "error": null
+        },
+        "healthz_readiness": {
+          "ok": true,
+          "http_code": 200,
+          "body": "{\"status\":\"ok\"}",
+          "error": null
+        }
+      },
+      "open_webui": {
+        "docker_health": "{\"Status\":\"healthy\",\"FailingStreak\":0,\"Log\":[{\"Start\":\"2026-09-09T11:20:26.716049166Z\",\"End\":\"2026-09-09T11:20:26.782991102Z\",\"ExitCode\":0,\"Output\":\"true\\n\"},{\"Start\":\"2026-09-09T11:20:56.783135988Z\",\"End\":\"2026-09-09T11:20:56.866683163Z\",\"ExitCode\":0,\"Output\":\"true\\n\"},{\"Start\":\"2026-09-09T11:21:26.866362883Z\",\"End\":\"2026-09-09T11:21:26.934198514Z\",\"ExitCode\":0,\"Output\":\"true\\n\"},{\"Start\":\"2026-09-09T11:21:56.933406687Z\",\"End\":\"2026-09-09T11:21:57.006588181Z\",\"ExitCode\":0,\"Output\":\"true\\n\"},{\"Start\":\"2026-09-09T11:22:27.006370883Z\",\"End\":\"2026-09-09T11:22:27.081708944Z\",\"ExitCode\":0,\"Output\":\"true\\n\"}]}",
+        "root": {
+          "ok": true,
+          "http_code": 200,
+          "body": "<!doctype html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"utf-8\" />\n\t\t<!-- LICENSE covers this Open WebUI branding surface, including name, logo,\n\t\tvisual, textual, symbolic identifiers, metadata, and surrounding UI.\n\t\tDo not alter, remove, obscure, or replace it except as LICENSE permits:\n\t\thttps://docs.openwebui.com/license. -->\n\t\t<link rel=\"icon\" type=\"image/png\" href=\"/static/favicon.png\" crossorigin=\"use-credentials\" />\n\t\t<link\n\t\t\trel=\"icon\"\n\t\t\ttype=\"image/png\"\n\t\t\thref=\"/static/favicon-96x96.png\"\n\t\t\tsizes=\"96x96\"\n\t\t\tcrossorigin=\"use-credentials\"\n\t\t/>\n\t\t<link\n\t\t\trel=\"icon\"\n\t\t\ttype=\"image/svg+xml\"\n\t\t\thref=\"/static/favicon.svg\"\n\t\t\tcrossorigin=\"use-credentials\"\n\t\t/>\n\t\t<link rel=\"shortcut icon\" href=\"/static/favicon.ico\" crossorigin=\"use-credentials\" />\n\t\t<link\n\t\t\trel=\"apple-touch-icon\"\n\t\t\tsizes=\"180x180\"\n\t\t\thref=\"/static/apple-touch-icon.png\"\n\t\t\tcrossorigin=\"use-credentials\"\n\t\t/>\n\t\t<link rel=\"manifest\" href=\"/manifest.json\" crossorigin=\"use-credentials\" />\n\t\t<meta\n\t\t\tname=\"viewport\"\n\t\t\tcontent=\"width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content\"\n\t\t/>\n\t\t<meta name=\"theme-color\" content=\"#171717\" />\n\t\t<meta name=\"robots\" content=\"noindex,nofollow\" />\n\n\t\t<script src=\"/static/loader.js\" defer crossorigin=\"use-credentials\"></script>\n\t\t<link rel=\"stylesheet\" href=\"/static/custom.css\" crossorigin=\"use-credentials\" />\n\n\t\t<script>\n\t\t\tfunction resizeIframe(obj) {\n\t\t\t\tobj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';\n\t\t\t}\n\t\t</script>\n\n\t\t<script>\n\t\t\t// On page load or when changing themes, best to add inline in `head` to avoid FOUC\n\t\t\t(() => {\n\t\t\t\tconst metaThemeColorTag = document.querySelector('meta[name=\"theme-color\"]');\n\t\t\t\tconst prefersDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;\n\n\t\t\t\tif (!localStorage?.theme) {\n\t\t\t\t\tlocalStorage.theme = 'system';\n\t\t\t\t}\n\n\t\t\t\tif (localStorage.theme === 'system') {\n\t\t\t\t\tdocument.documentElement.classList.add(prefersDarkTheme ...(truncated)",
+          "error": null
+        },
+        "api_version": {
+          "ok": true,
+          "http_code": 200,
+          "body": "{\"version\":\"0.11.3\",\"deployment_id\":\"\"}",
+          "error": null
+        }
+      },
+      "openclaw": {
+        "docker_health": "{\"Status\":\"healthy\",\"FailingStreak\":0,\"Log\":[{\"Start\":\"2026-09-09T11:09:37.023873053Z\",\"End\":\"2026-09-09T11:09:37.12710663Z\",\"ExitCode\":0,\"Output\":\"\"},{\"Start\":\"2026-09-09T11:12:37.120372118Z\",\"End\":\"2026-09-09T11:12:37.225571322Z\",\"ExitCode\":0,\"Output\":\"\"},{\"Start\":\"2026-09-09T11:15:37.218681154Z\",\"End\":\"2026-09-09T11:15:37.324764274Z\",\"ExitCode\":0,\"Output\":\"\"},{\"Start\":\"2026-09-09T11:18:37.31798235Z\",\"End\":\"2026-09-09T11:18:37.450113872Z\",\"ExitCode\":0,\"Output\":\"\"},{\"Start\":\"2026-09-09T11:21:37.442889698Z\",\"End\":\"2026-09-09T11:21:37.608250723Z\",\"ExitCode\":0,\"Output\":\"\"}]}",
+        "control_ui": {
+          "ok": true,
+          "http_code": 200,
+          "body": "<!doctype html>\n<html data-openclaw-terminal-enabled=\"false\" lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta\n      name=\"viewport\"\n      content=\"width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content\"\n    />\n    <title>OpenClaw Control</title>\n    <meta name=\"color-scheme\" content=\"dark light\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"./favicon.svg\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"./favicon-32.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"./apple-touch-icon.png\" />\n    <link rel=\"manifest\" href=\"./manifest.webmanifest\" />\n    <script>\n      (function () {\n        var THEMES = { claw: 1, knot: 1, dash: 1 };\n        var MODES = { system: 1, light: 1, dark: 1 };\n        var LEGACY = {\n          dark: \"claw:dark\",\n          light: \"claw:light\",\n          openknot: \"knot:dark\",\n          fieldmanual: \"dash:dark\",\n          clawdash: \"dash:light\",\n          system: \"claw:system\",\n        };\n        try {\n          var keys = Object.keys(localStorage);\n          var raw;\n          for (var i = 0; i < keys.length; i++) {\n            if (keys[i].indexOf(\"openclaw.control.settings.v1\") === 0) {\n              raw = localStorage.getItem(keys[i]);\n              if (raw) break;\n            }\n          }\n          if (!raw) return;\n          var s = JSON.parse(raw);\n          var t = s && s.theme;\n          var m = s && s.themeMode;\n          if (typeof t !== \"string\") t = \"\";\n          if (typeof m !== \"string\") m = \"\";\n          var legacy = LEGACY[t];\n          var theme = THEMES[t] ? t : legacy ? legacy.split(\":\")[0] : \"claw\";\n          var mode = MODES[m] ? m : legacy ? legacy.split(\":\")[1] : \"system\";\n          if (mode === \"system\") {\n            mode = window.matchMedia(\"(prefers-color-scheme: light)\").matches ? \"light\" : \"dark\";\n          }\n          var resolved =\n            theme === \"knot\"\n              ? mode === \"light\"\n                ? \"openknot-light\"\n       ...(truncated)",
+          "error": null
+        }
+      }
+    },
+    "dependents": {
+      "open_webui": {
+        "checked": true,
+        "http_code": "200",
+        "ok": true,
+        "error": null
+      },
+      "openclaw": {
+        "checked": true,
+        "http_code": "200",
+        "ok": true,
+        "error": null
+      }
+    },
+    "daemon_json": {
+      "path": "C:\\Users\\Matt Becker\\.docker\\daemon.json",
+      "exists": true,
+      "raw": "{\n  \"builder\": {\n    \"gc\": {\n      \"defaultKeepStorage\": \"20GB\",\n      \"enabled\": true\n    }\n  },\n  \"experimental\": false\n}\n",
+      "max_concurrent_downloads": null,
+      "max_concurrent_uploads": null
+    }
+  },
+  "diff": {
+    "engine_version": {
+      "before": "29.6.1",
+      "after": "29.6.1",
+      "changed": false
+    },
+    "fleet": {
+      "missing": [],
+      "added": [],
+      "not_running": []
+    },
+    "tracked_ok": {
+      "before": {
+        "n8n": true,
+        "open_webui": true,
+        "openclaw": true
+      },
+      "after": {
+        "n8n": true,
+        "open_webui": true,
+        "openclaw": true
+      }
+    },
+    "dependents_ok": {
+      "before": {
+        "open_webui": true,
+        "openclaw": true
+      },
+      "after": {
+        "open_webui": true,
+        "openclaw": true
+      }
+    },
+    "daemon_json": {
+      "match": true,
+      "note": "No expected concurrency values supplied — reporting only, not gating.",
+      "before": {
+        "path": "C:\\Users\\Matt Becker\\.docker\\daemon.json",
+        "exists": true,
+        "raw": "{\n  \"builder\": {\n    \"gc\": {\n      \"defaultKeepStorage\": \"20GB\",\n      \"enabled\": true\n    }\n  },\n  \"experimental\": false\n}\n",
+        "max_concurrent_downloads": null,
+        "max_concurrent_uploads": null
+      },
+      "after": {
+        "path": "C:\\Users\\Matt Becker\\.docker\\daemon.json",
+        "exists": true,
+        "raw": "{\n  \"builder\": {\n    \"gc\": {\n      \"defaultKeepStorage\": \"20GB\",\n      \"enabled\": true\n    }\n  },\n  \"experimental\": false\n}\n",
+        "max_concurrent_downloads": null,
+        "max_concurrent_uploads": null
+      }
+    }
+  },
+  "pass": true
+}

@@ -8,6 +8,135 @@ it — what happened, in what order, and why. Newest entry at the top.
 
 ---
 
+## 2026-09-09 — update-execution, Docker Engine Sitting: 29.6.1 → 29.7.2 (target 29.8.0 not reached)
+
+**Starting point:** `records\runbooks\docker.md` and `prompts\docker-update-apply.md`
+(drafted in Cowork 2026-09-09, before this sitting) — the fourth instance of
+the five-phase apply loop, and the first on the substrate itself: updating
+the engine restarts the daemon, bouncing every tracked container at once,
+so this sitting's checks had to cover the whole fleet, not one target.
+
+**Chunk A (Step Zero + Phase 0, read-only):**
+- Confirmed Docker Desktop (not a bare engine package) on a WSL2 backend —
+  `docker info`'s `OSType: linux` and kernel string
+  `6.18.33.1-microsoft-standard-WSL2` settle it; Windows commonly runs
+  Desktop, but this wasn't assumed.
+- **Downgrade-safety research done properly**, not from a cached prior —
+  fetched GitHub's own release notes individually for every tag between
+  current and target (`docker-v29.6.2`, `docker-v29.7.0`, `docker-v29.7.1`,
+  `docker-v29.7.2`, `docker-v29.8.0`), not just a summarized docs page. None
+  names a storage-format, data-layout, graphdriver, or
+  containerd-snapshotter change — the only functional change in range is
+  29.7.0 starting to *honor* `max-concurrent-downloads`/`-uploads` (a bug
+  fix, not a format change).
+- Full fleet captured: **6 containers**, not the 3 tracked ones —
+  `kokoro`, `searxng-core`, `searxng-valkey` also run on this engine and
+  also bounce. All 6 were `Up` at baseline.
+- Two decisions surfaced to Matt explicitly via `AskUserQuestion` rather
+  than decided unilaterally: (1) the `daemon.json` concurrency wrinkle —
+  Matt chose to accept the new 3/5 default over pinning `0`/`0`; (2) no
+  29.6.1-era rollback installer was retained anywhere on the host (the
+  in-place `Docker Desktop Installer.exe` in the live install directory
+  isn't a separately-retained artifact) — Matt approved fetching one.
+- Found Docker's own published `checksums.txt` alongside the installer
+  download (same S3/CloudFront host as the installer itself) — not
+  documented anywhere, discovered by probing for the sidecar file the same
+  way Node's `SHASUMS256.txt` and Ollama's `sha256sum.txt` worked. Fetched,
+  hash-verified (exact match), and cross-checked against the live-installed
+  file's own embedded version metadata (`4.81.0.232925`) before trusting it.
+- `scripts\docker-update-check.ps1` written new — **fleet-scoped**, not
+  single-target like `node-update-check.ps1`/`ollama-update-check.ps1`:
+  engine version, full `docker ps -a` diffed by container name, each
+  tracked container's own HTTP/health check, both dependents' Ollama
+  reachability, `daemon.json`'s concurrency keys. openclaw's Ollama
+  reachability check is a network-only curl from inside the container
+  (never reads its provider config), staying inside CLAUDE.md's hard
+  boundary. Ran a real Phase 0 capture (run `20260909-062238`, target
+  pinned `29.8.0`) plus a separate no-op dry run (`20260909-062253`) to
+  prove the diff mechanism itself works before trusting it — both clean.
+- Reported everything and stopped, per the runbook's Chunk A/B split,
+  handing Matt the install step.
+
+**Chunk B (verify, on "installed"):**
+- Matt reported the install ran but Desktop didn't visibly restart. Rather
+  than guess whether a manual restart was needed, checked live: Desktop
+  process start times were ~11 minutes after Phase 0's capture — a real
+  restart had happened, just not a visibly obvious one. No manual restart
+  needed.
+- **Phase 2 verify surfaced a real mismatch**: the engine landed on
+  `29.7.2`, not the pinned `29.8.0`. Root cause confirmed live, not
+  assumed: Docker Desktop's newest available release (`4.90.0`, published
+  2026-09-07) bundles engine `29.7.2` — Docker has not yet shipped a
+  Desktop release bundling `29.8.0`, even though that engine tag has
+  existed since 2026-09-03. No further "check for updates" click can reach
+  it today; this is a structural gap in the update channel, not a
+  transient one.
+- Everything else in Phase 2 passed cleanly: 0 containers missing, 0 stuck
+  restarting, 0 unexpected additions across the full fleet; all three
+  tracked containers passed their own health check before and after; both
+  open-webui and openclaw still reach Ollama; `daemon.json` unchanged,
+  matching Matt's decision.
+- This hit the runbook's own hard STOP condition ("target isn't pinned
+  exact 29.8.0") — did not paper over it or silently treat 29.7.2 as
+  equivalent. Asked Matt explicitly via `AskUserQuestion` how to close out;
+  he chose to accept `29.7.2` and record it now rather than leave the
+  inventory entry stale at `29.6.1`.
+- `config\inventory.json`'s `docker` entry got a full `deployment` block
+  (mechanism evidence, Desktop version history, the downgrade-safety
+  research, the `daemon.json` decision, both installer records) — first
+  time this component has one, following Node's/Ollama's precedent.
+  `STATE.md` updated to match. **Per `TIERS.md`'s promotion rule, this does
+  *not* promote Docker's apply step F→E** — the target-version miss is
+  exactly the kind of surprise that keeps a component at Tier F for its
+  next update, even though nothing actually broke; explicitly not treated
+  as equivalent to Node's or Ollama's clean first runs.
+
+---
+
+## 2026-09-09 — Cowork sitting: Open WebUI queued for update-execution, current-note added to Notion
+
+**Starting point:** Matt was mid-run on Docker's update-apply prompt in a
+separate Claude Code session on the host when he noticed Open WebUI wasn't
+part of the update-execution rollout and asked to have it added — from this
+Cowork session, which can reach the repo over the device bridge but not run
+PowerShell on the host this turn (the `infra-watch` folder mounted for file
+access but not for a host shell).
+
+- **Checked the premise first rather than editing on the word.** Open WebUI
+  turned out to already be tracked — one of the seven `inventory.json`
+  entries, checked for installed/release version every run — just never
+  behind (0 releases behind since it was first tracked), so it never
+  produced an assessment file, a Discord post, or a Notion row, and it was
+  never named in `PLAN-update-execution-v1.md`'s original four-platform ask
+  (n8n, Docker, Ollama, Node). Asked Matt via `AskUserQuestion` which gap he
+  meant rather than guessing; he confirmed: queue it in the update-execution
+  sequence, and add it to the Notion board.
+- **`STATE.md` §1** — added Open WebUI as a fourth item on the
+  update-execution queue (Docker Engine → OpenClaw → n8n → Open WebUI),
+  ordered last since it has no known migration and no dependents, unlike
+  the other three's migration-driven ordering. Read the file fresh
+  immediately before editing (and re-checked its mtime) since the live
+  Docker sitting could have been about to write its own close-out to the
+  same file; no collision as of this edit.
+- **`records\assessments\open-webui.md`** — a new "current, no action
+  needed" note, written by hand in the shape `reconcile-current.ps1`
+  produces (that script only touches components with a prior assessment
+  file, and this component never had one), sourced from run
+  `20260907-080001`'s `releases.json` (installed `0.11.3`, current
+  `v0.11.3`, 0 behind).
+- **Notion row created** for `open-webui` in the "Infra-Watch — Component
+  Assessments" database, via the Notion MCP connector directly (queried
+  first to confirm no row already existed) rather than `post-notion.ps1` —
+  this session couldn't reach the host shell to run it. Same field mapping
+  and page-body shape as the script produces, verified against
+  `post-notion.ps1`'s own code and the live data source schema before
+  writing.
+- **Scope held to what was asked.** Did not write open-webui's runbook,
+  check script, or apply prompt — Matt picked "queue it," not "build it
+  now" — so those stay for whenever it actually falls behind.
+
+---
+
 ## 2026-09-09 — update-execution, Ollama Sitting: 0.32.6 → 0.33.3
 
 **Starting point:** `records\runbooks\ollama.md` (drafted in Cowork

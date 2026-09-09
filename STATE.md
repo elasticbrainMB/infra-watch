@@ -6,9 +6,10 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-09 — Ollama updated 0.32.6 → 0.33.3 via the
-update-execution flow, Ollama's own first clean Tier-F run (see §1 and §2
-below)._
+_Last updated: 2026-09-09 — Docker Engine updated 29.6.1 → 29.7.2 via the
+update-execution flow (target was 29.8.0; not reached — see §1). Fleet-wide
+verify passed on everything except the exact version pin. Docker's apply
+step stays at Tier F, not promoted, because of that surprise._
 
 ## 1. What's tracked
 
@@ -21,7 +22,7 @@ one entry can't point `releases_from` at two repos). Confirmed with Matt
 |---|---|---|
 | n8n | high | 2.26.0 |
 | ollama | high | 0.33.3 |
-| docker | high | 29.6.1 |
+| docker | high | 29.7.2 |
 | openclaw | medium | 2026.7.1 |
 | open-webui | medium | 0.11.3 |
 | pwsh | medium | 7.6.5 |
@@ -156,6 +157,98 @@ installer is now the rollback artifact for the 7-day window (through
 run**, which promotes *Ollama's own* apply step F→E for its next update —
 distinct from and not inherited from Node's earlier F→E promotion, per the
 runbook's own note that promotion is per-component.
+
+**Update-execution sequence for the remaining three, settled with Matt
+2026-09-09: Docker Engine → OpenClaw → n8n.** Not the order a runbook
+happened to exist in — OpenClaw's runbook was drafted first only because
+Matt had been exploring it in a separate thread, and that wasn't meant to
+jump it ahead of Docker or n8n. The actual reasoning: OpenClaw's 2.0
+migration and n8n's own forward-only migrations are each one-way with a
+7-day rollback window (Decision D); updating the engine after either would
+restart (bounce) an already-migrated container outside its own
+verification window, stacking an unrelated substrate change on top of an
+irreversible one. Doing the engine first means both later updates land on
+an already-proven, stable substrate. `records\runbooks\docker.md` and
+`prompts\docker-update-apply.md` are drafted (Cowork, pending Matt's
+review, nothing run); OpenClaw's runbook (`PLAN-openclaw-2.0-update-v1.md`)
+was also amended the same day with a no-secrets-to-disk rule after Ollama's
+sitting incidentally surfaced a sibling container's credentials in raw tool
+output.
+
+**Open WebUI added to the queue, 2026-09-09 (Cowork sitting), as a fourth
+item: Docker Engine → OpenClaw → n8n → Open WebUI.** It was already in
+`inventory.json` from v1 and gets a version/release check every run, but it
+was never named in the original update-execution ask and had no pending
+gap to force the question — 0 releases behind as of run `20260907-080001`.
+Ordered last, not first: unlike the other three it carries no known
+migration and nothing else in the inventory depends on it running
+(`inventory.json`'s own note on the component), so there's no
+substrate-ordering hazard pulling it earlier the way OpenClaw's and n8n's
+one-way migrations do. When it next shows behind, it takes the medium-blast
+Tier-F-first/-then-E gate already defined generically for containers in
+`PLAN-update-execution-v1.md` §4a/§5 — no new design work needed, just its
+own runbook and check script once a real gap opens. A first "current, no
+action needed" note was written for it this same sitting —
+`records\assessments\open-webui.md`, in the shape `reconcile-current.ps1`
+would produce, but by hand, since that script only reconciles a component
+that already has a prior assessment file and open-webui never had one —
+and mirrored to the Notion board so it has a row like the rest of the
+tracked seven. Disk is still the source of truth; the Notion write was made
+directly against the API this sitting (Cowork, no host shell access this
+turn) rather than through `post-notion.ps1`, but matches that script's
+field mapping and page-body shape exactly.
+
+**Docker Engine updated 29.6.1 → 29.7.2, 2026-09-09** — the fourth
+component through the update-execution flow, and the first on the
+substrate itself. Step Zero closed read-only against the live host: Docker
+Desktop (not a bare engine package), WSL2 backend (`docker info` OSType
+linux, kernel `6.18.33.1-microsoft-standard-WSL2`), self-updates via its
+own in-app updater. Downgrade-safety was checked individually against
+GitHub's release notes for every intervening tag (`docker-v29.6.2`,
+`docker-v29.7.0`, `docker-v29.7.1`, `docker-v29.7.2`, `docker-v29.8.0`), not
+a summarized page — none names a storage-format, data-layout, graphdriver,
+or containerd-snapshotter change. The 29.7.0 config wrinkle
+(`max-concurrent-downloads`/`-uploads` starting to be honored) was surfaced
+to Matt explicitly; his call was to accept the new default (3/5) rather
+than pin `0`/`0` — no `daemon.json` edit made.
+
+`scripts\docker-update-check.ps1` written new — unlike the single-target
+Node/Ollama scripts, this one snapshots and diffs the **whole container
+fleet** (6 containers total on this engine, not just the 3 tracked ones),
+because the engine restart bounces everything at once. No retained
+29.6.1-era rollback installer existed on the host (the in-place
+`Docker Desktop Installer.exe` inside the live install directory doesn't
+count — it's not a separately-retained artifact); Matt approved fetching
+one, and it was hash-verified against Docker's own published
+`checksums.txt` for that build before being trusted (same discipline as
+Node's and Ollama's rollback artifacts).
+
+Matt installed via Desktop's own updater; **the Desktop app didn't visibly
+restart, but process start-time evidence (fresh start ~11 min after Phase 0)
+confirmed it had — no manual restart was needed.** Phase 2 verify: **the
+fleet-health portion passed cleanly** — 0 containers missing, 0 stuck
+restarting, 0 unexpected additions; n8n/open-webui/openclaw each passed
+their own health check before and after; both open-webui and openclaw still
+reach Ollama over `host.docker.internal`; `daemon.json` unchanged, matching
+Matt's decision. **The version-pin check failed**: the engine landed on
+`29.7.2`, not the pinned `29.8.0` — Docker Desktop's newest available
+release (`4.90.0`, published 2026-09-07) bundles `29.7.2`; Docker has not
+shipped a Desktop release that bundles `29.8.0` yet, even though that
+engine tag has existed since 2026-09-03. No further "check for updates"
+click can reach it today. Matt's explicit call: accept `29.7.2` and record
+it now (it already carries the CVE fixes named in the assessment for
+29.6.2 and 29.7.0; only 29.8.0's own hardening additions — the configurable
+default AppArmor profile and the btrfs world-writable container-root fix —
+are still outstanding) rather than leave the entry stale at `29.6.1`. The
+remaining gap to `29.8.0` will surface naturally in a future weekly
+assessment once Desktop ships a release that bundles it.
+
+**Per `TIERS.md`'s promotion rule, this does *not* promote Docker's apply
+step F→E** — the target-version miss is exactly the kind of surprise that
+keeps (or returns) a component at Tier F for its next update, even though
+nothing actually broke. Full detail (mechanism evidence, both installer
+records, the downgrade-safety research) is in the `docker` entry's
+`deployment` block in `config\inventory.json`.
 
 ## 2. In progress
 
