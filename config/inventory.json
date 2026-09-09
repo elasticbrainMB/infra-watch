@@ -66,7 +66,51 @@
         "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
       },
       "blast_radius": "high",
-      "notes": "Model backend other tracked components (open-webui, likely openclaw) call through host.docker.internal."
+      "notes": "Model backend other tracked components (open-webui, likely openclaw) call through host.docker.internal.",
+      "deployment": {
+        "mechanism": "Inno Setup installer (OllamaSetup.exe), per-user install — not an MSI.",
+        "mechanism_evidence": "Verified 2026-09-09, read-only, live host: (1) `Get-Command ollama` resolves to `C:\\Users\\Matt Becker\\AppData\\Local\\Programs\\Ollama\\ollama.exe` — a per-user AppData path, not Program Files; (2) registry Uninstall entry found under HKCU (not HKLM) at `SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{44E83376-CE68-45EB-8FC1-393500EB558C}_is1` — the `_is1` suffix and `UninstallString` pointing at `unins000.exe` are Inno Setup's standard signature, and no `WindowsInstaller` property is present (an MSI-backed entry always carries `WindowsInstaller=1`), so this is confirmed not an MSI and Node's ProductCode/UpgradeCode check does not apply. DisplayName 'Ollama version 0.32.6', Publisher 'Ollama'.",
+        "binary_path": "C:\\Users\\Matt Becker\\AppData\\Local\\Programs\\Ollama\\ollama.exe",
+        "install_root": "C:\\Users\\Matt Becker\\AppData\\Local\\Programs\\Ollama",
+        "uninstaller": "C:\\Users\\Matt Becker\\AppData\\Local\\Programs\\Ollama\\unins000.exe",
+        "models_path": "C:\\Users\\Matt Becker\\.ollama\\models",
+        "models_path_evidence": "`$env:OLLAMA_MODELS` is unset at User/Machine/Process scope — per CLAUDE.md's absent-env-var rule, this was NOT read as confirming the documented default. Instead confirmed from Ollama's own reported effective config: `%LOCALAPPDATA%\\Ollama\\server-1.log`, repeated 'server config' log lines (e.g. timestamp 2026-08-28T13:34:47), carry `OLLAMA_MODELS:C:\\\\Users\\\\Matt Becker\\\\.ollama\\\\models` — this happens to match the documented default but is recorded here as Ollama's own statement of it, not an assumption.",
+        "ollama_host": "http://127.0.0.1:11434",
+        "ollama_host_evidence": "Same server-config log lines carry `OLLAMA_HOST:http://127.0.0.1:11434` — matches CLAUDE.md's 'Ollama runs natively at 127.0.0.1:11434'.",
+        "caddy_model": "qwen3.5-caddy:latest",
+        "caddy_model_evidence": "Confirmed live, not from notes — the pinball caddy's `C:\\automation\\caddy\\scripts\\caddy-server.js` line 354 hardcodes `const MODEL = 'qwen3.5-caddy';`, called via POST to `http://127.0.0.1:11434/api/chat` (never `/api/generate` — the file's own comment says the latter ignores `think:false` for the qwen3.5 series) with `think:false` and `keep_alive:-1` as top-level fields. `ollama list` on the live host shows `qwen3.5-caddy:latest` present (10 GB, pulled/derived 6 weeks ago) alongside the unrelated base tags `qwen3.5:9b-q8_0` and `gemma4:latest`. This supersedes any note referencing `qwen3:14b` (stale) or the base `qwen3.5:9b-q8_0` tag (not what the caddy actually calls) — neither is the caddy model.",
+        "dependents": {
+          "open-webui": {
+            "reachability": "http://host.docker.internal:11434",
+            "evidence": "Confirmed live via `docker inspect open-webui --format '{{json .Config.Env}}'` (2026-09-09): env includes `OLLAMA_BASE_URL=http://host.docker.internal:11434`."
+          },
+          "openclaw": {
+            "reachability": "Not independently confirmed live.",
+            "evidence": "`docker inspect openclaw`'s env list carries no `OLLAMA_BASE_URL` or equivalent — openclaw's Ollama connectivity is apparently set via its own provider config file inside its data volume (`openclaw_data` → `/home/node/.openclaw`), not a container env var. Per CLAUDE.md's hard boundary ('OpenClaw config — read version only, never edit'), that config file was not inspected. The only documented value is in the planning doc `C:\\automation\\caddy\\openclaw-environment-spec-v1.md` §4.1: `baseUrl: \"http://host.docker.internal:11434\"` (native `api: \"ollama\"`, no `/v1` suffix) — a spec, not a live-confirmed fact. Note: this same `docker inspect` call surfaced openclaw's live secrets (Telegram bot token, gateway password) in tool output; they were not recorded anywhere on disk and this project does not otherwise touch openclaw config."
+          }
+        },
+        "current_version": "0.33.3",
+        "version_history": [
+          { "version": "0.32.6", "note": "Installed prior to this sitting." },
+          { "version": "0.33.3", "installed_on": "2026-09-09", "verify_run": "20260909-054429", "verify_result": "PASS" }
+        ],
+        "update_behavior": "Binary swap, confirmed real-run 2026-09-09 (run `20260909-054429`): binary path, install root, and uninstaller path all unchanged pre/post install; models directory unchanged — same 3 models, same names, same sizes, before and after. No side-install, no new registry entry (same HKCU Uninstall key, version string updated in place).",
+        "rollback_installer_0.32.6": {
+          "status": "Fetched 2026-09-09 with Matt's explicit approval (none was retained on host — checked Downloads, Program Files, %LOCALAPPDATA%\\Ollama including its own updates_v2 cache, and C:\\ root). Now the rollback artifact for the 7-day window (Decision D) following the 2026-09-09 update to 0.33.3.",
+          "path": "C:\\Users\\Matt Becker\\Downloads\\OllamaSetup-0.32.6.exe",
+          "sha256": "526E47DB7C295D017E9514DF5BB20C6F32B3D1170F2C8BB9C59B53185F5BD6FF",
+          "size_bytes": 1563278432,
+          "verification": "Get-FileHash on the downloaded file matches the GitHub-published asset digest exactly. Not this project's generated content — the 7-day retention window (Decision D) applies to the rollback role, not the file's own lifespan; it's a pre-existing file in Matt's own Downloads folder outside this project's retention control, same as Node's.",
+          "retention_window_ends": "2026-09-16"
+        },
+        "target_installer_0.33.3": {
+          "status": "Fetched 2026-09-09 with Matt's explicit approval, installed the same day (Matt's hand action), verified PASS via run `20260909-054429`. This is now the live installed version.",
+          "path": "C:\\Users\\Matt Becker\\Downloads\\OllamaSetup-0.33.3.exe",
+          "sha256": "32CDCB1DA477BC7FFFBF1C1CDEEB99B1DB003AF094DB56DD3C156ABD04D34F8E",
+          "size_bytes": 1573069568,
+          "verification": "Get-FileHash on the downloaded file matches, and this value was cross-checked two ways before trusting it: GitHub's own per-asset digest (`gh release view`) and Ollama's published `sha256sum.txt` for the v0.33.3 release both gave the same value."
+        }
+      }
     },
     {
       "id": "docker",

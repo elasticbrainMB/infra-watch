@@ -6,8 +6,9 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-08 — Notion board (v1.1) added; update-execution
-Sitting 1 (Node read-only proof) run (see §1 and §2 below)._
+_Last updated: 2026-09-09 — Ollama updated 0.32.6 → 0.33.3 via the
+update-execution flow, Ollama's own first clean Tier-F run (see §1 and §2
+below)._
 
 ## 1. What's tracked
 
@@ -19,7 +20,7 @@ one entry can't point `releases_from` at two repos). Confirmed with Matt
 | id | blast_radius | installed (as of last run) |
 |---|---|---|
 | n8n | high | 2.26.0 |
-| ollama | high | 0.32.6 |
+| ollama | high | 0.33.3 |
 | docker | high | 29.6.1 |
 | openclaw | medium | 2026.7.1 |
 | open-webui | medium | 0.11.3 |
@@ -104,6 +105,57 @@ new array-merging logic in `run-check.ps1` — no tracked component is
 actually at 0-behind this week, so there's been no live run through this
 path yet. It will get its first real exercise whenever a component
 naturally resolves in a future scheduled run.
+
+**Ollama updated 0.32.6 → 0.33.3, 2026-09-09**, via the same
+update-execution flow proven on Node. Step Zero closed the runbook's
+`[VERIFY]` rows read-only against the live host: install mechanism is an
+Inno Setup installer (`OllamaSetup.exe`, per-user, HKCU registry entry, no
+`WindowsInstaller` property) — not an MSI, so Node's ProductCode/UpgradeCode
+check doesn't apply; models path confirmed as `C:\Users\Matt
+Becker\.ollama\models` from Ollama's own server-config log line (the env
+var is unset — the absent-default rule was followed, not assumed); the
+caddy model confirmed live as `qwen3.5-caddy:latest` (a custom-derived tag,
+read directly out of `caddy-server.js`'s `MODEL` constant — not the stale
+`qwen3:14b` name from old notes, and not the base `qwen3.5:9b-q8_0` tag);
+open-webui's dependent path confirmed (`OLLAMA_BASE_URL=http://
+host.docker.internal:11434`). Openclaw's live reachability was **not**
+independently probed — doing so would have meant reading its provider
+config beyond version, which crosses CLAUDE.md's OpenClaw hard boundary
+("read version only, never edit"); its documented `host.docker.internal`
+baseUrl comes only from `caddy\openclaw-environment-spec-v1.md`'s plan, not
+a live check. One side finding: the read-only `docker inspect openclaw`
+call used to check for an `OLLAMA_BASE_URL` env var also surfaced
+openclaw's live Telegram bot token and gateway password in tool output —
+neither was written to disk anywhere in this project; flagging it here as
+something Matt should know happened, not treating it as this project's to
+fix.
+
+No `0.32.6` installer was retained anywhere on the host — a hard STOP per
+the runbook. Matt approved fetching both the `0.32.6` rollback artifact and
+the `v0.33.3` target from Ollama's official GitHub releases; both were
+hash-verified (the target's checksum cross-checked two independent ways —
+GitHub's own asset digest and Ollama's published `sha256sum.txt` agreed)
+before being trusted. New `scripts\ollama-update-check.ps1` written
+(`-Phase capture`/`-Phase verify`, mirrors `node-update-check.ps1`'s shape)
+capturing `ollama --version`, the full model list (diffed by name **and**
+size), a known-good chat-API query against the caddy model, and
+open-webui's live round-trip to Ollama — openclaw's round-trip is
+deliberately not probed, same boundary as above. Phase 0 ran clean (run
+`20260909-054429`); Matt ran the verified installer by hand (the one
+mutating step, same shape as Node); Phase 2 verified **PASS**: version
+exact match, model list unchanged (0 missing, 0 added, 0 size changes),
+known-good query still answers correctly (cold-load latency rose from
+17.9s to 64.0s post-install — not a pass/fail criterion, plausibly just a
+fresh process reloading the model from disk, noted rather than alarmed
+over), open-webui's round-trip now reports 0.33.3 too. Deployment block
+and both installer records updated in `inventory.json`; the `0.32.6`
+installer is now the rollback artifact for the 7-day window (through
+2026-09-16).
+
+**Per `TIERS.md`'s promotion rule, this is Ollama's own first clean Tier-F
+run**, which promotes *Ollama's own* apply step F→E for its next update —
+distinct from and not inherited from Node's earlier F→E promotion, per the
+runbook's own note that promotion is per-component.
 
 ## 2. In progress
 

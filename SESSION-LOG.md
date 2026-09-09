@@ -8,6 +8,108 @@ it — what happened, in what order, and why. Newest entry at the top.
 
 ---
 
+## 2026-09-09 — update-execution, Ollama Sitting: 0.32.6 → 0.33.3
+
+**Starting point:** `records\runbooks\ollama.md` (drafted in Cowork
+2026-09-09, before this sitting) was a draft with every fact in its Step
+Zero table marked `[VERIFY]` — the second concrete instance of the
+five-phase apply loop, following Node's proven shape, but nothing on it had
+been confirmed against the live host yet.
+
+- **Closed Step Zero, read-only.** Install mechanism: registry Uninstall
+  entry under **HKCU** (not HKLM), `_is1` suffix, `UninstallString` pointing
+  at `unins000.exe`, no `WindowsInstaller` property — Inno Setup, not an
+  MSI, so Node's ProductCode/UpgradeCode check doesn't apply here at all.
+  Binary at `C:\Users\Matt Becker\AppData\Local\Programs\Ollama\ollama.exe`
+  (a per-user AppData path, not Program Files).
+- **Models path** confirmed the harder way, per CLAUDE.md's absent-env-var
+  rule: `$env:OLLAMA_MODELS` is unset at every scope, so rather than
+  assuming the documented default, read Ollama's own `server-1.log`
+  "server config" line, which reports `OLLAMA_MODELS:C:\Users\Matt
+  Becker\.ollama\models` as the actual effective path (it happens to match
+  the default, but this is Ollama's own statement of it, not an inference
+  from absence). Same log line also confirmed `OLLAMA_HOST:http://
+  127.0.0.1:11434`, matching CLAUDE.md.
+- **The caddy model** — the one fact the draft runbook flagged as
+  untrustworthy from memory (Matt's old notes said `qwen3:14b`). Found the
+  real answer by reading `C:\automation\caddy\scripts\caddy-server.js`
+  directly: line 354 hardcodes `const MODEL = 'qwen3.5-caddy';`, called via
+  POST to `/api/chat` (never `/api/generate` — the file's own comment says
+  the latter ignores `think:false` for the qwen3.5 series) with
+  `think:false` and `keep_alive:-1` as top-level fields. `ollama list`
+  confirmed `qwen3.5-caddy:latest` present on the live host — a
+  custom-derived 10GB tag, distinct from the base `qwen3.5:9b-q8_0` also
+  present. Neither the stale name nor the base tag was the real answer.
+- **Dependent reachability:** open-webui confirmed live via `docker inspect
+  open-webui`'s env — `OLLAMA_BASE_URL=http://host.docker.internal:11434`.
+  Openclaw was deliberately **not** dug into beyond that same env check
+  (which found no equivalent var for it) — CLAUDE.md's hard boundary for
+  this project reads OpenClaw's version only and never edits or actively
+  probes its config, so its documented `host.docker.internal` baseUrl
+  comes only from the (unverified-live) planning doc
+  `caddy\openclaw-environment-spec-v1.md`. **Side finding, flagged to
+  Matt rather than acted on:** that one `docker inspect openclaw` call
+  incidentally surfaced openclaw's live Telegram bot token and gateway
+  password in tool output. Nothing from it was written to disk anywhere in
+  this project.
+- **No `0.32.6` installer was retained anywhere on the host** — checked
+  Downloads, Program Files, Ollama's own `updates_v2` update cache, and
+  `C:\` root. This is an explicit hard STOP in both the runbook and this
+  project's own file-download rule. Asked Matt via `AskUserQuestion`
+  rather than assuming; he approved fetching both the `0.32.6` rollback
+  artifact and the `v0.33.3` target from Ollama's official GitHub releases.
+  Both downloaded (~1.5GB each, backgrounded) and hash-verified before
+  being trusted — the target's checksum was cross-checked two independent
+  ways (GitHub's own per-asset digest via `gh release view`, and Ollama's
+  published `sha256sum.txt` for that release) and both agreed.
+- Wrote all of Step Zero plus both installer records into a new
+  `deployment` block on **only** the `ollama` entry in
+  `config\inventory.json` (Decision F), mirroring Node's shape.
+- Wrote `scripts\ollama-update-check.ps1` — `-Phase capture`/`-Phase
+  verify` tied by `-RunId`, same shape as `node-update-check.ps1`, but
+  capturing what Ollama's runbook actually calls for: `ollama --version`,
+  the full `ollama list` output (diffed by name **and** size, not count),
+  `ollama ps`, a live known-good chat-API query against the caddy model
+  (recording the answer and latency), and open-webui's own round-trip to
+  Ollama over `host.docker.internal` (confirmed live via `docker exec
+  open-webui curl ...` — `curl` is present in that container and the call
+  worked on the first try). Openclaw's round-trip is deliberately not
+  probed, same boundary as Step Zero. No data-backup logic — per §4c an
+  Ollama update is a binary swap and models aren't backed up.
+- **Phase 0 ran clean** (run `20260909-054429`): version `0.32.6`, 3 models
+  present, known-good query answered "OK" in 17.9s (a cold load — the
+  caddy's own code comments call this the normal case), open-webui's
+  round-trip HTTP 200.
+- **Matt ran the verified `v0.33.3` installer by hand** — the one mutating
+  step in the whole flow, same shape as Node's. Replied "installed."
+- **Phase 2 verified PASS.** `ollama --version` exact match to `0.33.3`;
+  model list unchanged (0 missing, 0 added, 0 size changes — all three
+  models present at the same sizes); known-good query still answers
+  correctly, though latency rose to 64.0s (not a pass/fail criterion —
+  plausibly a fresh Ollama process cold-loading the model again after the
+  install restarted it; noted, not treated as a surprise); open-webui's
+  round-trip now reports `0.33.3` too, confirming the dependent picked up
+  the real change. No Phase 3 triage needed.
+- Updated `inventory.json`'s `ollama` deployment block: `current_version`
+  now `0.33.3`, `version_history` added, `update_behavior` closed out with
+  the real-run confirmation (binary/install paths unchanged, no
+  side-install, models directory untouched). The `0.32.6` installer is now
+  the rollback artifact for the 7-day window (Decision D), through
+  2026-09-16.
+- **Per `TIERS.md`'s promotion rule, this is Ollama's own first clean
+  Tier-F run**, which promotes *Ollama's own* apply step F→E for its next
+  update. This is separate from and not inherited from Node's earlier F→E
+  promotion — the runbook's own gate section is explicit that promotion is
+  per-component.
+- Commit scoped to exactly what this sitting touched:
+  `config\inventory.json`, `scripts\ollama-update-check.ps1`,
+  `records\runs\20260909-054429\`, `STATE.md`, `SESSION-LOG.md`. Left
+  pre-existing uncommitted changes to `CLAUDE.md`, `PLAN-update-
+  execution-v1.md`, and the `prompts\` files untouched and unstaged, per
+  CLAUDE.md's scoped-commit rule — this sitting didn't write any of those.
+
+---
+
 ## 2026-09-08 — update-execution, Sitting 1: Node read-only proof
 
 **Starting point:** `PLAN-update-execution-v1.md` (drafted earlier the same

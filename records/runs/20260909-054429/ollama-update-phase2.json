@@ -1,0 +1,81 @@
+{
+  "run_id": "20260909-054429",
+  "phase": "verify",
+  "timestamp": "2026-09-09T05:56:55.7149430-05:00",
+  "mode": "target-check",
+  "target_version": "0.33.3",
+  "current": {
+    "ollama_version": "ollama version is 0.33.3",
+    "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+    "models": {
+      "raw": "NAME                    ID              SIZE      MODIFIED    \r\nqwen3.5-caddy:latest    2ffed99401ad    10 GB     6 weeks ago    \r\ngemma4:latest           c6eb396dbd59    9.6 GB    6 weeks ago    \r\nqwen3.5:9b-q8_0         441ec31e4d2a    10 GB     7 weeks ago",
+      "models": [
+        {
+          "name": "qwen3.5-caddy:latest",
+          "id": "2ffed99401ad",
+          "size_value": 10.0,
+          "size_unit": "GB",
+          "modified": "6 weeks ago"
+        },
+        {
+          "name": "gemma4:latest",
+          "id": "c6eb396dbd59",
+          "size_value": 9.6,
+          "size_unit": "GB",
+          "modified": "6 weeks ago"
+        },
+        {
+          "name": "qwen3.5:9b-q8_0",
+          "id": "441ec31e4d2a",
+          "size_value": 10.0,
+          "size_unit": "GB",
+          "modified": "7 weeks ago"
+        }
+      ]
+    },
+    "known_good_query": {
+      "ok": true,
+      "model": "qwen3.5-caddy",
+      "question": "Reply with the single word: OK.",
+      "answer": "OK",
+      "latency_ms": 63992,
+      "error": null
+    },
+    "dependents": {
+      "open_webui": {
+        "checked": true,
+        "http_code": "200",
+        "body": "{\"version\":\"0.33.3\"}",
+        "ok": true,
+        "error": null
+      },
+      "openclaw": {
+        "checked": false,
+        "note": "Not probed. CLAUDE.md hard boundary: this project reads OpenClaw version only and never edits or actively touches its config; confirming live Ollama connectivity would require reading its provider config beyond that."
+      }
+    }
+  },
+  "diff": {
+    "ollama_version": {
+      "before": "ollama version is 0.32.6",
+      "after": "ollama version is 0.33.3",
+      "changed": true
+    },
+    "models": {
+      "missing": [],
+      "added": [],
+      "changed_size": []
+    },
+    "known_good_query": {
+      "before_ok": true,
+      "after_ok": true,
+      "changed": false
+    },
+    "open_webui_dependent": {
+      "before_ok": true,
+      "after_ok": true,
+      "changed": false
+    }
+  },
+  "pass": true
+}
