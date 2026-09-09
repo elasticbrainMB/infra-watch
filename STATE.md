@@ -6,10 +6,13 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-09 — Docker Engine updated 29.6.1 → 29.7.2 via the
-update-execution flow (target was 29.8.0; not reached — see §1). Fleet-wide
-verify passed on everything except the exact version pin. Docker's apply
-step stays at Tier F, not promoted, because of that surprise._
+_Last updated: 2026-09-09 — OpenClaw's handoff prompt amended with a
+freshness-check step, and n8n's runbook + handoff prompt newly drafted
+(both Cowork, pending Matt's review, nothing run) — see §1. Docker Engine
+was updated 29.6.1 → 29.7.2 via the update-execution flow earlier the same
+day (target was 29.8.0; not reached). Fleet-wide verify passed on
+everything except the exact version pin; Docker's apply step stays at
+Tier F, not promoted, because of that surprise._
 
 ## 1. What's tracked
 
@@ -249,6 +252,47 @@ keeps (or returns) a component at Tier F for its next update, even though
 nothing actually broke. Full detail (mechanism evidence, both installer
 records, the downgrade-safety research) is in the `docker` entry's
 `deployment` block in `config\inventory.json`.
+
+**OpenClaw's handoff prompt amended, and n8n's runbook + handoff prompt
+newly drafted, 2026-09-09 (Cowork sitting, later the same day as Docker's
+real run).** With Docker done, Matt asked to get the next item ready while
+he was away from the host — both remaining items were built rather than
+picking one, per his own "if it makes sense to build the plan for both now
+... that works too" call.
+
+- `prompts\openclaw-update-apply.md` gained a new first step: a freshness
+  check against openclaw/openclaw's live GitHub releases before Step Zero
+  runs, since its target (`v2026.8.2`) was pinned from the `20260904`
+  assessment and the `20260907` weekly run's attempt to refresh it failed
+  (hit the spend cap) — so by the time this sitting actually runs, the
+  target may be several days stale. The check either confirms nothing
+  newer shipped, or stops and reports to Matt rather than silently
+  retargeting. Everything else in that prompt (the mandatory backup, the
+  no-secrets-to-disk rule added earlier the same day, Chunk A/B shape) is
+  unchanged from its prior draft.
+- `records\runbooks\n8n.md` and `prompts\n8n-update-apply.md` are newly
+  written — n8n's own first sitting under this flow, so (like Ollama's and
+  OpenClaw's first sittings) Step Zero is genuine discovery: n8n has no
+  `deployment` block on disk yet. Grounded in `records\assessments\n8n.md`
+  (run `20260907-080001`, confirmed still the latest successful run for
+  `n8n`): target `n8n@2.37.11`, verdict `schedule` (no security content in
+  the 42 releases behind, but real breaking API changes — the workflow-
+  history endpoint's `offset` param removed and a JSON content-type now
+  required on decorator routes in `2.36.7`, plus the Google Ads node's
+  migration off its sunset v21 API in `2.34.6`/`2.35.3`). The runbook
+  carries the same forward-only-migration hazard as OpenClaw's (§4a):
+  re-pinning the old tag alone is not a rollback once the schema has
+  migrated, so the Phase 0 volume/DB backup is mandatory, not optional,
+  same as OpenClaw's. Also carries n8n's own freshness-check step and a
+  reminder for Matt to check his own API scripts/workflows against the two
+  breaking changes before or during the window. `blast_radius: high` (from
+  `inventory.json`) already forces full Tier F on its own; the migration
+  reinforces it independently via Decision E.
+
+Both are pending Matt's review; nothing has run. Update-execution sequence
+remains Docker Engine (done) → OpenClaw → n8n → Open WebUI (§1 above);
+this sitting built the next two runbooks/prompts ahead of when Matt gets to
+them, it did not change which one runs first.
 
 ## 2. In progress
 

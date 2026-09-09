@@ -7,6 +7,10 @@
 > infra-watch does not apply updates — **every mutating command below is run by
 > Matt by hand**, one at a time, and only after Step Zero is filled in. This
 > file is read-and-recommend output, exactly like the rest of the project.
+> **Amended 2026-09-09** (Cowork, still pending Matt's review, still nothing
+> run): added a no-secrets-to-disk rule to the Step Zero env-vars row, after
+> Ollama's sitting the same week incidentally surfaced a sibling container's
+> credentials in raw tool output.
 
 This is the first concrete instance of the five-phase apply loop proposed in
 `PLAN-update-execution-v1.md` (**capture → install → verify → resolve →
@@ -56,9 +60,29 @@ to look):
 | **State mount path (in-container)** | `.[0].Mounts[]` → `Destination` | `[VERIFY]` — official default is `/home/node/.openclaw` (see note below) |
 | **Container user** | `.[0].Config.User` | `[VERIFY]` — official default is `node`, not `root` (see note below) |
 | **Published port(s)** | `.[0].NetworkSettings.Ports` / `.[0].HostConfig.PortBindings` | `[VERIFY]` |
-| **Env vars** (esp. any `OPENCLAW_*`, bind/gateway, model backend) | `.[0].Config.Env` | `[VERIFY]` — note any `OPENCLAW_GATEWAY_BIND`; see Security posture |
+| **Env vars** (esp. any `OPENCLAW_*`, bind/gateway, model backend) | `.[0].Config.Env` | `[VERIFY]` — note any `OPENCLAW_GATEWAY_BIND`; see Security posture. **Do not write secret values to this table or anywhere else on disk — see the note below.** |
 | **Restart policy** | `.[0].HostConfig.RestartPolicy` | `[VERIFY]` |
 | **`docker run`/compose definition** it was created from | your compose file, or reconstruct from the above | `[VERIFY]` |
+
+**Secrets in `.Config.Env` — added 2026-09-09, after a sibling incident on
+Ollama's sitting.** Checking a *different* container's env for an
+`OLLAMA_BASE_URL` this same week incidentally surfaced that container's live
+Telegram bot token and gateway password in raw tool output — harmless there
+only because nothing was written down. `openclaw`'s own `docker inspect` is
+guaranteed to be worse: this container's env is exactly where its Telegram
+bot token, gateway password, and any API keys actually live. Reading
+`.Config.Env` to recreate the container (Phase 1.2 needs the *names* and
+non-secret values — ports, bind mode, model backend) does not require
+recording secret *values* anywhere persistent. So: record variable **names**
+and non-secret values (the `OPENCLAW_GATEWAY_BIND` mode, backend URLs, port
+numbers) into `inventory.json`'s deployment block as normal; for anything
+that looks like a credential (token, password, key, secret), confirm it is
+still set and unchanged pre/post update, but redact the value in every
+recorded artifact and in this file — never write it to `inventory.json`,
+a runbook, `STATE.md`, `SESSION-LOG.md`, a commit, or a chunk report. The
+recreate command in Phase 1.2 still needs the real values to actually run —
+that command is Matt's to execute by hand from his own shell/compose file,
+not something infra-watch assembles and persists with secrets inlined.
 
 **Container user / state path — a correction that matters.** OpenClaw's
 official Docker docs run the container as the **`node`** user with state at
