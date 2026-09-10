@@ -8,6 +8,120 @@ it — what happened, in what order, and why. Newest entry at the top.
 
 ---
 
+## 2026-09-09 — update-execution, OpenClaw Sitting: 2026.7.1 → 2026.9.3 (retargeted mid-sitting from v2026.8.2)
+
+**Starting point:** `PLAN-openclaw-2.0-update-v1.md` and
+`prompts\openclaw-update-apply.md` (drafted in Cowork earlier the same day,
+amended with a no-secrets-to-disk rule and a freshness-check step) — the
+third instance of the five-phase apply loop, and the first Docker container
+(Node and Ollama were both native-host). `medium` blast_radius promoted to
+full Tier F by the one-way 2.0 SQLite migration, per Decision E.
+
+**Freshness check (the prompt's own step 1, run before Step Zero):** found
+`v2026.9.1`/`.2`/`.3` had all shipped since the runbook's `v2026.8.2` pin
+(2026-09-01 → 2026-09-08). Per the prompt's own rule, stopped and reported
+to Matt rather than silently retargeting or proceeding stale. Checked each
+release's actual notes on GitHub, not a summary: none named a security fix;
+`v2026.9.3`'s "Breaking" changes were plugin-SDK/non-Docker-install-facing,
+not a change to the 2.0 migration. Matt reviewed and explicitly approved
+retargeting to the newest release — `PLAN-openclaw-2.0-update-v1.md` and
+the apply prompt were both edited to match throughout before Step Zero ran.
+
+**Chunk A (Step Zero + Phase 0, read-only):**
+- Found the container is Docker-Compose-managed
+  (`C:\automation\openclaw\docker-compose.yml`) — read the compose file
+  directly for the recreate definition rather than reconstructing one from
+  `docker inspect`, a first for this project (Node/Ollama/Docker were all
+  bare installs or `docker run`-created).
+- State volume, mount path, and container user all matched OpenClaw's own
+  documented safe defaults exactly (`openclaw_data` → `/home/node/.openclaw`,
+  user `node`) — no silent-data-skip risk. Published port scoped to
+  loopback + one tailnet address, not `0.0.0.0`.
+- **Caught a real tag-format mismatch before it could break the handoff**:
+  GitHub's release tag is `v2026.9.3`; Docker Hub's actual image tag is
+  `2026.9.3`, no `v` — confirmed against the Hub API directly rather than
+  assumed, matching how the running `2026.7.1` image also carries no `v`.
+  Every command in the runbook, the prompt, and the check script's recorded
+  target was corrected before being handed to Matt.
+- Plugin check (added this sitting because `v2026.9.3` renames/moves
+  plugin-SDK exports): closed via the Phase 0.2 baseline log tail rather
+  than querying app state, to stay inside CLAUDE.md's "OpenClaw config —
+  read version only" boundary. Concluded "discord and ollama are both
+  official, no exposure" — **this conclusion turned out to be incomplete**,
+  see Chunk B.
+- Wrote `scripts\openclaw-update-check.ps1` new (dry-run tested, then run
+  for real, run id `20260909-172926`, target `2026.9.3`) — deliberately
+  does NOT script "known-good query"/"Discord round-trip" the way Ollama's
+  script scripts a direct API call; OpenClaw has no equivalent simple REST
+  endpoint, and faking one would mean actually using the live assistant.
+  These are recorded as human-confirmed flags instead, default unconfirmed.
+- **The mandatory Phase-0 backup could not be run by this sitting** — its
+  command is a `docker run`, unconditionally deny-listed with no
+  carve-out, which the apply prompt's own step 6 had inconsistently
+  implied this sitting could run. Corrected in both the runbook and the
+  prompt: backup is Matt's hand action too, verified afterward by this
+  project using Windows' own `tar.exe` (no Docker needed for that half).
+  Matt ran it; verified 19.5 MB, 3653 real entries including the state
+  SQLite files, hashed, and recorded — not empty, not a misnamed volume.
+- Reported everything and stopped, per the runbook's Chunk A/B split,
+  handing Matt the compose-file edit + pull/recreate commands.
+
+**Chunk B (verify, on "installed") — did not go cleanly, though it
+ultimately passed:**
+- Matt reported the web UI unreachable and no Discord response. Live
+  diagnosis (read-only): the container was crash-looping (exit 78) —
+  `docker logs` showed a documented, named condition: state database
+  schema migration required (`audit-events-v2`), asking for
+  `openclaw doctor --fix`. This is exactly the one condition
+  `PLAN-openclaw-2.0-update-v1.md`'s Phase 3 was written for, not an
+  unknown regression.
+- Presented Matt the documented repair sequence — OpenClaw's own error
+  text specifies an order the runbook's single-command Phase 3 text
+  hadn't spelled out: stop → one-shot `doctor --fix` → start. Matt ran all
+  three; the migration completed and the gateway came up healthy.
+- **A second, different failure then appeared**: Discord still didn't
+  respond. Log showed the Discord plugin failed to load —
+  `Plugin discord cannot import openclaw/plugin-sdk/security-runtime
+  (built with OpenClaw 2026.7.1; running core 2026.9.3)`. This is the real
+  gap in Chunk A's plugin check: "official plugin" still means an
+  independently-versioned npm package inside the data volume, not
+  something frozen into the core image — the Discord channel itself needed
+  its own update, exactly like a custom plugin would have. Per this
+  project's "do not fight it live beyond the one documented repair path"
+  discipline, presented Matt both the documented one-line fix and the full
+  Phase 4 rollback, and let him choose. He chose the fix:
+  `docker exec openclaw openclaw plugins update @openclaw/discord@latest`
+  (its own version pin refused a plain `update discord`) + a gateway
+  restart, both run by him.
+- Separately, and expected rather than a defect: the recreate didn't carry
+  over existing device pairings ("kept 0 existing record(s)") — Matt
+  re-entered the gateway password (never read or recorded by this
+  project) and approved his MacBook as a new device via
+  `openclaw devices approve`, both his own actions.
+- **`scripts\openclaw-update-check.ps1` needed two live corrections**,
+  found by Phase 2 running against a real failure instead of a synthetic
+  one: the "manual repair" text match was checking for the runbook's own
+  paraphrase, which never appears in OpenClaw's real output (the actual
+  strings are `gateway.maintenance_required` and `doctor --fix`); and the
+  log check used a fixed `--tail` window, which still contained the
+  *original* crash-loop's text long after the repair succeeded — switched
+  to `docker logs --since <StartedAt>`, scoped to the container's current
+  run only.
+- Phase 2 verify ultimately **PASSED** (run `20260909-172926`): version
+  exact match `2026.9.3`, healthy, `healthz`/Control UI both reachable,
+  known-good query and Discord round-trip both confirmed directly by Matt.
+  Backup was never restored — the forward path succeeded.
+- `config\inventory.json`'s `openclaw` entry got its first full
+  `deployment` block (mechanism evidence, the corrected plugin-check note,
+  a `known_issues_2026-09-09` list, backup record, rollback reference).
+  `STATE.md` updated to match. **Per `TIERS.md`'s promotion rule, this does
+  *not* promote openclaw's apply step F→E** — same reasoning as Docker's
+  engine update this same week: verify passed, but two real surprises
+  occurred that this sitting's own pre-flight checklist didn't catch.
+  openclaw's apply step stays at Tier F for its next update.
+
+---
+
 ## 2026-09-09 — update-execution, Docker Engine Sitting: 29.6.1 → 29.7.2 (target 29.8.0 not reached)
 
 **Starting point:** `records\runbooks\docker.md` and `prompts\docker-update-apply.md`

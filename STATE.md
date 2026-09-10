@@ -6,13 +6,16 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-09 — OpenClaw's handoff prompt amended with a
-freshness-check step, and n8n's runbook + handoff prompt newly drafted
-(both Cowork, pending Matt's review, nothing run) — see §1. Docker Engine
-was updated 29.6.1 → 29.7.2 via the update-execution flow earlier the same
-day (target was 29.8.0; not reached). Fleet-wide verify passed on
-everything except the exact version pin; Docker's apply step stays at
-Tier F, not promoted, because of that surprise._
+_Last updated: 2026-09-09 — OpenClaw updated 2026.7.1 → 2026.9.3 via the
+update-execution flow, the third component through it and the first Docker
+container. Retargeted mid-sitting from the originally-planned v2026.8.2 to
+the newest release with Matt's explicit approval, after a freshness check
+found three newer releases. Verify ultimately PASSED, but the run needed
+two live fixes not in the original plan — see §1. Docker Engine was updated
+29.6.1 → 29.7.2 earlier the same day (target was 29.8.0; not reached).
+Fleet-wide verify passed on everything except the exact version pin;
+Docker's apply step stays at Tier F, not promoted, because of that
+surprise._
 
 ## 1. What's tracked
 
@@ -26,7 +29,7 @@ one entry can't point `releases_from` at two repos). Confirmed with Matt
 | n8n | high | 2.26.0 |
 | ollama | high | 0.33.3 |
 | docker | high | 29.7.2 |
-| openclaw | medium | 2026.7.1 |
+| openclaw | medium | 2026.9.3 |
 | open-webui | medium | 0.11.3 |
 | pwsh | medium | 7.6.5 |
 | node | low | 24.20.0 |
@@ -253,6 +256,92 @@ nothing actually broke. Full detail (mechanism evidence, both installer
 records, the downgrade-safety research) is in the `docker` entry's
 `deployment` block in `config\inventory.json`.
 
+**OpenClaw updated 2026.7.1 → 2026.9.3, 2026-09-09** — the third component
+through the update-execution flow, and the first Docker container (Node
+and Ollama were both native-host). Step Zero found the container is
+Docker-Compose-managed (`C:\automation\openclaw\docker-compose.yml`), so
+the exact recreate definition was read directly rather than reconstructed
+from `docker inspect`; state volume `openclaw_data`, mount path, and
+container user all matched OpenClaw's own documented safe defaults exactly
+(no risk of the silent-data-skip trap the runbook calls out); published
+port scoped to loopback + one tailnet address, not broad-LAN.
+
+**Retargeted mid-sitting, before Step Zero ran.** The apply prompt's
+freshness check (run before anything else, per its own first step) found
+`v2026.9.1`/`.2`/`.3` had all shipped since the runbook's original
+`v2026.8.2` pin — per the prompt's own rule, this stopped the sitting and
+reported to Matt rather than silently retargeting or proceeding stale.
+None of the three named a security fix; `v2026.9.3`'s "Breaking" changes
+were plugin-SDK/non-Docker-install-facing, not a change to the 2.0
+migration itself. Matt reviewed and explicitly approved moving to the
+newest release. One real catch from this step: GitHub's release tag
+(`v2026.9.3`) and Docker Hub's actual image tag (`2026.9.3`, no `v`)
+differ — confirmed against the Hub API directly before handing Matt a pull
+command, avoiding a pull that would have failed on a tag that doesn't
+exist.
+
+**Mandatory Phase-0 backup taken and verified.** Because the backup
+command is itself a `docker run`, unconditionally deny-listed for this
+project with no carve-out, it was Matt's hand action rather than this
+sitting's — a first for this project's Phase 0 discipline, previously
+always run by the sitting itself for Node/Ollama/Docker. Verified
+afterward by this project using Windows' own `tar.exe`, no Docker needed
+for that half: 19.5 MB, 3653 real entries including the state SQLite files.
+
+**The update did not go cleanly, though it ultimately passed.** Two
+distinct problems surfaced after the real pull+recreate, both resolved by
+Matt's own hand actions on this sitting's diagnosis:
+
+1. The container crash-looped (exit 78) — the gateway required its
+   documented one-time database schema migration (`audit-events-v2`) via
+   `openclaw doctor --fix`. This is the exact anticipated path from
+   `PLAN-openclaw-2.0-update-v1.md` Phase 3, and it worked as documented
+   once Matt ran the stop → one-shot `doctor --fix` → start sequence
+   (OpenClaw's own error text specifies this exact order, which the
+   runbook's single-command Phase 3 text hadn't spelled out).
+2. Discord then failed to load entirely — a genuine gap in this sitting's
+   own Step Zero: the plugin-compatibility check (added when the target
+   was retargeted, because `v2026.9.3` renames/moves plugin-SDK exports)
+   concluded "discord and ollama are both official, no exposure" from the
+   startup log alone. That conclusion was incomplete — OpenClaw's Discord
+   channel is itself an independently-versioned npm package inside the
+   data volume, built against 2026.7.1's SDK, and it broke against
+   2026.9.3's renamed internals exactly like a custom plugin would have.
+   Fixed via `openclaw plugins update @openclaw/discord@latest` (its
+   version-pin mechanism refused a plain `update discord`) plus a gateway
+   restart — both run by Matt via `docker exec`, not this project, since
+   installing/updating a component is squarely out of scope here regardless
+   of which Docker verb carries it.
+
+Separately (expected behavior, not a defect): the container recreate did
+not carry over existing device pairings ("kept 0 existing record(s)"), so
+the Control UI asked for its password again and a new device (Matt's
+MacBook) needed `openclaw devices approve` — both his own actions, since
+approving access and handling the gateway password are his calls, not
+this project's.
+
+**`scripts\openclaw-update-check.ps1` needed two live corrections during
+this same sitting**, both found by Phase 2 actually running against a real
+failure rather than a synthetic one: the "manual repair" detection
+originally matched the runbook's own paraphrase, which never appears in
+OpenClaw's real output (the actual strings are `gateway.maintenance_required`
+and `doctor --fix`); and the log check originally used a fixed `--tail`
+window, which stayed populated with the *original* crash-loop's text long
+after the repair succeeded — switched to `docker logs --since <StartedAt>`,
+scoped to the container's actual current run.
+
+**Per `TIERS.md`'s promotion rule, this does *not* promote openclaw's apply
+step F→E** — same reasoning as Docker's engine update this same week: verify
+ultimately passed, but two real surprises occurred that this sitting's own
+pre-flight checklist didn't catch. openclaw's apply step stays at Tier F for
+its next update. Full detail (the corrected plugin-check note, the
+`known_issues_2026-09-09` list, backup record, rollback reference) is in the
+`openclaw` entry's `deployment` block in `config\inventory.json`.
+
+**Update-execution sequence: Docker Engine (done) → OpenClaw (done) → n8n →
+Open WebUI.** OpenClaw's runbook and handoff prompt (drafted earlier the
+same day) are now the executed record for this run, not a pending draft.
+
 **OpenClaw's handoff prompt amended, and n8n's runbook + handoff prompt
 newly drafted, 2026-09-09 (Cowork sitting, later the same day as Docker's
 real run).** With Docker done, Matt asked to get the next item ready while
@@ -289,10 +378,9 @@ picking one, per his own "if it makes sense to build the plan for both now
   `inventory.json`) already forces full Tier F on its own; the migration
   reinforces it independently via Decision E.
 
-Both are pending Matt's review; nothing has run. Update-execution sequence
-remains Docker Engine (done) → OpenClaw → n8n → Open WebUI (§1 above);
-this sitting built the next two runbooks/prompts ahead of when Matt gets to
-them, it did not change which one runs first.
+Both were pending Matt's review at the time they were drafted; n8n's still
+is. OpenClaw's has since run for real (see above) — update-execution
+sequence is now Docker Engine (done) → OpenClaw (done) → n8n → Open WebUI.
 
 ## 2. In progress
 

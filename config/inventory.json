@@ -49,7 +49,52 @@
         "tag_pattern": "^v(\\d+\\.\\d+\\.\\d+)$"
       },
       "blast_radius": "medium",
-      "notes": "Repo resolved from the running container's org.opencontainers.image.source label (2026-09-03), not guessed — the project name collides with unrelated repos and SEO content. Config read-only per CLAUDE.md; never edited by this tool."
+      "notes": "Repo resolved from the running container's org.opencontainers.image.source label (2026-09-03), not guessed — the project name collides with unrelated repos and SEO content. Config read-only per CLAUDE.md; never edited by this tool.",
+      "deployment": {
+        "mechanism": "Docker Compose (not a bare `docker run`). Defined by C:\\automation\\openclaw\\docker-compose.yml, a single `openclaw` service. Recreate = edit the `image:` tag in that file and run `docker compose up -d` (Matt's hand action, deny-listed for this project either way).",
+        "mechanism_evidence": "Verified 2026-09-09, read-only, live host: `docker inspect openclaw` labels carry `com.docker.compose.project=openclaw`, `com.docker.compose.project.config_files=C:\\automation\\openclaw\\docker-compose.yml`; the compose file itself was read directly rather than reconstructed from inspect output.",
+        "compose_file": "C:\\automation\\openclaw\\docker-compose.yml",
+        "image_repo": "openclaw/openclaw",
+        "state_volume": "openclaw_data",
+        "state_volume_kind": "named Docker volume, external:true in compose (not a bind mount)",
+        "state_mount_path": "/home/node/.openclaw",
+        "state_mount_path_evidence": "Confirmed live via `docker inspect` Mounts[] and the compose file's `volumes:` line — matches OpenClaw's official default exactly (not the root-user/`/root/.openclaw` mismatch the runbook warns about).",
+        "container_user": "node",
+        "container_user_evidence": "`.Config.User` = \"node\", matching the official default — consistent with the mount path above, so no silent-data-skip risk from a user/path mismatch.",
+        "published_ports": "127.0.0.1:18789->18789/tcp and 100.115.99.39:18789->18789/tcp (a tailnet address, not 0.0.0.0) — confirmed via both `docker inspect` PortBindings and the compose file's `ports:` list.",
+        "restart_policy": "unless-stopped (MaximumRetryCount 0)",
+        "env_vars": {
+          "names_present": ["OLLAMA_API_KEY", "TELEGRAM_BOT_TOKEN", "OPENCLAW_GATEWAY_PASSWORD", "NODE_VERSION", "YARN_VERSION", "COREPACK_HOME", "PLAYWRIGHT_BROWSERS_PATH", "NODE_ENV"],
+          "note": "Values for OLLAMA_API_KEY, TELEGRAM_BOT_TOKEN, and OPENCLAW_GATEWAY_PASSWORD are deliberately not recorded anywhere in this project, per the 2026-09-09 no-secrets-to-disk rule (added after a sibling incident on Ollama's sitting the same week). All three were confirmed present and non-empty; confirming they're byte-identical pre/post update is Phase 2's job, not something recorded here. Non-secret values: NODE_VERSION=24.16.0 (the base image's bundled Node — already meets v2026.9.3's new 24.16.0-or-newer floor for the current 2026.7.1 image; the v2026.9.3 image's own bundled Node is unconfirmed until pulled), NODE_ENV=production. `OPENCLAW_GATEWAY_BIND` is not set as an env var at all — per CLAUDE.md's absent-env-var rule, this is not read as confirming any default; the concrete, directly-observed fact is the port binding above (scoped to loopback + one tailnet IP, not 0.0.0.0)."
+        },
+        "security_posture_check_2026-09-09": "`OPENCLAW_GATEWAY_BIND=lan` not found (env var absent entirely; live port binding is loopback + tailnet-scoped, not broad-LAN). No `--accept-capabilities` usage found in the compose file or env; a full CLI-history confirmation isn't attempted (would cross the OpenClaw-config boundary, see plugins_check below). Startup log does print OpenClaw's own warning ('Gateway is binding to a non-loopback address...') — expected given the tailnet IP binding, not a new finding.",
+        "plugins_check": "Closed 2026-09-09 via the Phase 0.2 baseline log tail (both plugins loading were 'discord' and 'ollama', both official/built-in) — but this call was **incomplete**, corrected the same sitting: 'official plugin' still means an independently-versioned npm package inside the data volume, not something frozen into the core image. The Discord plugin, built against 2026.7.1's SDK, failed to load against 2026.9.3's core (`Plugin discord cannot import openclaw/plugin-sdk/security-runtime ... does not provide an export named 'privateFileStore'`) until Matt ran `docker exec openclaw openclaw plugins update @openclaw/discord@latest` (its own version-pin mechanism required the explicit `@latest`, a plain `plugins update discord` refused) followed by `docker restart openclaw`. Record for next time: an official channel plugin can still lag a core upgrade and needs its own update step; Step Zero's plugin check should not be read as clearing this risk again without re-verifying post-recreate.",
+        "current_version": "2026.9.3",
+        "current_image_digest": "sha256:6cb72e1599b3b76e2ea3dcc2f4dd7f112247367fbecadfcdee8caa7423f4989b",
+        "current_image_digest_evidence": "`docker image inspect openclaw/openclaw:2026.9.3 --format {{json .RepoDigests}}`, confirmed 2026-09-09 post-update — matches the digest Docker Hub's own tag API reported for `2026.9.3` before the pull, cross-checked rather than assumed.",
+        "tag_format_note": "Docker Hub's actual image tag is `2026.9.3`, no `v` — GitHub's release tag for the identical release is `v2026.9.3`. Confirmed against the Hub API directly 2026-09-09 before trusting it (a `v`-prefixed pull would have failed). The `org.opencontainers.image.version` label also carries no `v`, matching the image tag, not the GitHub tag.",
+        "version_history": [
+          { "version": "2026.7.1", "note": "Installed prior to this sitting." },
+          { "version": "2026.9.3", "installed_on": "2026-09-09", "verify_run": "20260909-172926", "verify_result": "PASS, but not clean — see known_issues_2026-09-09 below." }
+        ],
+        "target_version_2026-09-09": "Retargeted this sitting from the original v2026.8.2 pin to the newest release, v2026.9.3 / Docker tag 2026.9.3, after a freshness check found three newer releases (none carrying a named security fix); see PLAN-openclaw-2.0-update-v1.md's amendment note and Sources. Matt approved the retarget explicitly before Step Zero ran.",
+        "migration": "2.0's SQLite migration is one-way; pre-migration originals are retained until an explicit, separate `openclaw update cleanup` (never run by this project — Matt's call after his own soak period). Mandatory Phase-0 volume backup applied (Tier F, per PLAN-update-execution-v1.md §8 Decision E).",
+        "backup": {
+          "status": "Taken 2026-09-09 by Matt (docker run is unconditionally deny-listed for this project, no carve-out for backups). Verified non-empty by this project afterward using Windows' own tar.exe, no Docker needed for the check. Not restored — the forward path (doctor --fix + plugin update) succeeded, so rollback was never exercised this sitting.",
+          "path": "C:\\automation\\openclaw\\backups\\openclaw-2026.7.1-20260909.tgz",
+          "size_bytes": 19522093,
+          "sha256": "BA6CB24685A95A136A495E5082B621B71FA677BAA1CAD33652D7E6695F19D63C",
+          "verification": "`tar.exe -tzf` lists 3653 real entries including state/openclaw.sqlite, state/openclaw.sqlite-wal/-shm, workspace/.git/, discord/command-deploy-cache.json — not an empty archive from a misnamed volume.",
+          "restore_target_volume": "openclaw_data (the same verified name from Step Zero)",
+          "prior_image_digest_for_rollback": "sha256:6a31d44b2944e7adcd2b582bf6fb463111264ebca97a0201795b799135bd102c (tag 2026.7.1) — retained as the rollback reference through the 7-day window, ending 2026-09-16."
+        },
+        "known_issues_2026-09-09": [
+          "Database schema migration (audit-events-v2) required the documented `openclaw doctor --fix` repair path — the container crash-looped (exit 78) on first boot until Matt ran: docker stop openclaw; docker run --rm -v openclaw_data:/home/node/.openclaw openclaw/openclaw:2026.9.3 openclaw doctor --fix; docker start openclaw. This is the exact anticipated path from PLAN-openclaw-2.0-update-v1.md Phase 3, and it worked as documented.",
+          "Discord channel plugin incompatibility (see plugins_check) — not anticipated by this sitting's Step Zero, found live. Fixed via docker exec openclaw openclaw plugins update @openclaw/discord@latest, then docker restart openclaw.",
+          "Control UI and new-device access required re-authentication/re-pairing after the recreate — the container's device-pairing store did not carry over existing pairings across the recreate ('device pairing store migrated to SQLite: imported 3 paired device(s), kept 0 existing record(s)'). Matt re-entered the existing (unchanged) OPENCLAW_GATEWAY_PASSWORD from C:\\automation\\openclaw\\.env in the browser, and approved the new MacBook device via `docker exec openclaw openclaw devices approve <id>`. Expected behavior after a container recreate, not a defect — flagged here so a future sitting isn't surprised by it either."
+        ],
+        "tier_promotion_2026-09-09": "Does NOT promote openclaw's apply step F→E, per TIERS.md's promotion rule and the same precedent set on Docker Engine's own update this week — two real surprises occurred (the Discord plugin break was not in this sitting's pre-flight checklist; re-authentication/re-pairing was needed). Verify ultimately PASSED, but this was not a clean run. openclaw's apply step stays at Tier F for its next update."
+      }
     },
     {
       "id": "ollama",

@@ -25,6 +25,33 @@ values (bind mode, port, backend URL) into `inventory.json`; redact anything
 that looks like a credential everywhere — the deployment block, this
 project's `STATE.md`/`SESSION-LOG.md`, your own chunk reports, the commit.
 
+**Retargeted 2026-09-09, same sitting as the freshness check below actually
+ran.** The freshness check found `v2026.9.1`/`.2`/`.3` all shipped after
+`v2026.8.2` was pinned; none named a security fix, and `v2026.9.3`'s
+breaking changes are plugin-SDK/non-Docker-install-facing only, not a
+change to the 2.0 migration itself. Matt reviewed this and approved
+retargeting to the newest release — every `v2026.8.2` reference below and
+in the runbook now means the `v2026.9.3` release. Step Zero also picked up
+one new row from this: confirm whether `openclaw` has any plugin installed,
+since the SDK breaking changes could affect one (closed via the baseline
+log tail, without crossing the OpenClaw-config boundary — see the runbook).
+
+**Tag-format correction, same sitting.** GitHub's release tag is
+`v2026.9.3`; Docker Hub's actual image tag is `2026.9.3`, no `v` — checked
+against the Hub API directly rather than assumed, matching how the
+currently-running image is tagged `2026.7.1`, also without a `v`. Every
+command below naming the Docker image tag uses `2026.9.3`.
+
+**Backup-step correction, same sitting.** Step 6 below originally read as
+if this sitting runs the Phase 0.3 backup command itself. It can't: that
+command is `docker run --rm -v ... alpine tar czf ...`, and `docker run` is
+unconditionally on this project's deny-list — no carve-out for backups,
+per this very prompt's own Discipline paragraph below and CLAUDE.md. The
+backup is Matt's hand action, handed to him *before* the Phase 1 pull/
+recreate commands, not bundled with them. Verifying it afterward (size,
+`tar tzf`-equivalent contents) is done with Windows' own `tar.exe` — no
+Docker needed for that half.
+
 ---
 
 infra-watch — OpenClaw 2.0 update apply (semi-automated: read-only Step Zero + Phase 0/2 automated, install/rollback stay Matt's).
@@ -49,17 +76,22 @@ every artifact this sitting produces, not just inventory.json.
 
 CHUNK A — Step Zero + Phase 0 (automated, read-only). Do all of this, then STOP.
 
-1. **Freshness check first, before anything else.** This runbook's target
-   (`v2026.8.2`) was pinned from an assessment written 2026-09-04 — the
-   2026-09-07 weekly run's attempt to reassess `openclaw` failed (hit the
-   spend cap), so this is now several days old and was never refreshed.
-   Check openclaw/openclaw's GitHub releases directly for anything newer
-   than `v2026.8.2`. If nothing newer has shipped, proceed with the pinned
-   target as-is and note that you checked. If something newer has shipped,
-   STOP and report it to Matt before going any further — do not silently
-   retarget to a newer version yourself (a newer release may carry its own
-   new migration or breaking changes this runbook wasn't written against),
-   and do not proceed on the stale target without his say-so either.
+1. **Freshness check first, before anything else.** This runbook's original
+   target (`v2026.8.2`) was pinned from an assessment written 2026-09-04 —
+   the 2026-09-07 weekly run's attempt to reassess `openclaw` failed (hit
+   the spend cap), so it was several days old and never refreshed.
+   **Done, 2026-09-09:** checked openclaw/openclaw's GitHub releases
+   directly (not a summary) and found `v2026.9.1` (2026-09-03), `v2026.9.2`
+   (2026-09-05), and `v2026.9.3` (2026-09-08) had all shipped since. Per
+   this step's own rule, stopped and reported to Matt rather than silently
+   retargeting or proceeding stale. None of the three names a security fix;
+   `v2026.9.3` lists several breaking changes, all plugin-SDK or
+   non-Docker-install-facing, not a change to the 2.0 migration itself.
+   Matt reviewed and explicitly approved moving to the newest release —
+   **the target for the rest of this sitting is `2026.9.3`** (Docker image
+   tag; GitHub calls the release `v2026.9.3` — see the tag-format note
+   above), not `v2026.8.2`. The runbook has been updated to match
+   throughout.
 2. Run `docker inspect openclaw` and close every Step Zero row: image
    reference (tag **and** digest — the rollback target), state volume name,
    in-container mount path, container user (confirm `node`/`/home/node/
@@ -75,8 +107,9 @@ CHUNK A — Step Zero + Phase 0 (automated, read-only). Do all of this, then STO
    `OPENCLAW_GATEWAY_BIND=lan`, or any indication `--accept-capabilities`
    was used for a plugin. Report these to Matt explicitly rather than
    deciding for him.
-4. Confirm the target `v2026.8.2` is what's actually being pulled — never
-   `:latest`. If anything says otherwise, STOP.
+4. Confirm the target `2026.9.3` (Docker image tag, no `v`) is what's
+   actually being pulled — never `:latest`. If anything says otherwise,
+   STOP.
 5. Run Phase 0.2's baseline health snapshot: `docker ps --filter
    name=openclaw`, `docker inspect --format '{{json .State.Health}}'
    openclaw`, `docker logs --tail 100 openclaw`. Separately, from a normal
@@ -84,15 +117,19 @@ CHUNK A — Step Zero + Phase 0 (automated, read-only). Do all of this, then STO
    known-good query to the local model returns sane output, Discord is
    connected. These are Phase 2's pass criteria — write down what "good"
    looks like today.
-6. Run Phase 0.3's **mandatory** state volume backup, using the *verified*
-   volume name — not a guess:
+6. Phase 0.3's **mandatory** state volume backup is Matt's hand action, not
+   this sitting's — the command is a `docker run`, unconditionally
+   deny-listed here. Construct it using the *verified* volume name — not a
+   guess — and hand it to Matt before anything else in Phase 1:
    ```
    docker run --rm -v <STATE_VOLUME>:/data -v <HOST_BACKUP_DIR>:/backup alpine tar czf /backup/openclaw-<FROM_VERSION>-<YYYYMMDD>.tgz -C /data .
    ```
-   Then **prove it's non-empty** before treating it as a real backup — check
-   the archive size and `tar tzf ... | head` to confirm real files are
-   listed. If it's tiny or empty, STOP — do not proceed to Chunk A step 7
-   or hand Matt an install command on an empty backup.
+   Once he confirms he's run it, **prove it's non-empty** before treating it
+   as a real backup — this half *can* be done without Docker: check the
+   archive size and list its contents with Windows' own `tar.exe -tzf`
+   (bsdtar, ships with Windows 10/11) to confirm real files are listed. If
+   it's tiny or empty, STOP — do not proceed to Chunk A step 7 or hand Matt
+   an install command on an empty backup.
 7. Record the prior image tag and digest (Step Zero) alongside the backup —
    this is the rollback reference.
 8. Write `scripts\openclaw-update-check.ps1` (new file → `ask`-gated) with
@@ -107,7 +144,7 @@ CHUNK A — Step Zero + Phase 0 (automated, read-only). Do all of this, then STO
    "manual repair" text, not just "container is Up."
 9. Report Step Zero's findings, the backup's proof-of-contents, and the
    Phase 0 capture, then STOP. Hand Matt the exact two commands for Phase
-   1 — `docker pull <IMAGE_REPO>:v2026.8.2` and the full recreate command
+   1 — `docker pull <IMAGE_REPO>:2026.9.3` and the full recreate command
    reconstructed from Step Zero (same volume, mount path, user, port, env,
    restart policy; only the tag changed) — for him to review and run
    himself. Tell him to reply "installed" when done.
@@ -126,13 +163,15 @@ CHUNK B — verify and record (automated). On "installed":
 11. If PASS: **do not run `openclaw update cleanup`** — that's a one-way
     door and Phase 4 is explicit that it waits for a soak period Matt
     chooses, not this sitting. Update the `openclaw` deployment block
-    (installed → `v2026.8.2`, new image digest, prior tag/digest kept as
+    (installed → `2026.9.3`, new image digest, prior tag/digest kept as
     the rollback reference, backup archive path/hash), update `STATE.md`
     and `SESSION-LOG.md` noting this is *openclaw's own* first clean
     Tier-F run under this flow (promotion is per-component — it doesn't
-    inherit Node's or Ollama's), and commit (`ask`-gated), scoped to
-    exactly the files this sitting changed. Double-check the diff before
-    committing that no secret value made it into any changed file.
+    inherit Node's or Ollama's) and that the target was moved to the
+    `v2026.9.3` release mid-sitting per Matt's approval, and commit
+    (`ask`-gated), scoped to exactly the files this sitting changed.
+    Double-check the diff before committing that no secret value made it
+    into any changed file.
 12. If FAIL: triage per the runbook's Phase 3 — **only** if the gateway
     exited asking for manual repair, present Matt the one-shot `doctor
     --fix` command (`docker run --rm -v <STATE_VOLUME>:...`, **not**
@@ -145,7 +184,7 @@ CHUNK B — verify and record (automated). On "installed":
 
 STOP conditions (hard): any Step Zero row unconfirmable; the Phase 0.3
 backup archive is empty, tiny, or unverified; target isn't pinned exact
-`v2026.8.2`; `OPENCLAW_GATEWAY_BIND=lan` or `--accept-capabilities` found
+`2026.9.3`; `OPENCLAW_GATEWAY_BIND=lan` or `--accept-capabilities` found
 and not explicitly flagged to Matt; a secret value about to be written to
 any file; verify FAIL for a reason the release notes didn't predict (→
 rollback guidance, don't fix live); any impulse to run `docker pull/run/

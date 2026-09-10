@@ -1,4 +1,4 @@
-# infra-watch — OpenClaw 2.0 update runbook (v2026.7.1 → v2026.8.2)
+# infra-watch — OpenClaw 2.0 update runbook (v2026.7.1 → v2026.9.3)
 
 > **STATUS: DRAFT RUNBOOK — do not execute until every `[VERIFY]` value in
 > Step Zero is confirmed against the live host. Pending Matt's review; nothing
@@ -11,6 +11,32 @@
 > run): added a no-secrets-to-disk rule to the Step Zero env-vars row, after
 > Ollama's sitting the same week incidentally surfaced a sibling container's
 > credentials in raw tool output.
+> **Retargeted 2026-09-09** (this sitting, live host session): the apply
+> prompt's freshness check found `v2026.9.1`, `v2026.9.2`, and `v2026.9.3` all
+> shipped after `v2026.8.2` was pinned (2026-09-01 → 2026-09-08). Checked
+> each release's own notes directly on GitHub, not a summary: none names a
+> CVE or other named vulnerability; `v2026.9.3` lists several **Breaking**
+> changes, but every one is plugin-SDK-facing (renamed/moved exports for
+> plugin authors) or a Node.js version floor for **non-Docker, Node-based
+> CLI/Gateway installs** — nothing that changes what the 2.0 SQLite migration
+> itself does. The 9.1–9.3 range mostly adds *more* protection around that
+> same migration (Doctor preserves settings through an automatic migration,
+> a "safer updates" candidate-rehearsal mode for the CLI self-update path,
+> schema-bump recovery handling) — reinforcing this runbook's existing
+> Phase 0 backup / Phase 3 doctor-conditional approach, not replacing it.
+> Matt reviewed this and explicitly approved moving the target to the
+> newest release, superseding `v2026.8.2` everywhere in this file. One open
+> item carried into Step Zero below: confirm whether the `openclaw`
+> container has any plugin installed, since the SDK breaking changes could
+> affect one — see the new Step Zero row.
+> **Tag-format correction, same sitting:** GitHub's release tag for this
+> version is `v2026.9.3`, but Docker Hub's actual image tag drops the `v`
+> — confirmed against the Hub API directly before trusting it, and
+> consistent with the currently-running image itself being tagged
+> `2026.7.1`, not `v2026.7.1`. Every command below that names the Docker
+> image tag uses `2026.9.3` (no `v`); references to the GitHub release
+> itself (Sources, the freshness-check narrative) keep the `v` since that's
+> how GitHub actually tags it.
 
 This is the first concrete instance of the five-phase apply loop proposed in
 `PLAN-update-execution-v1.md` (**capture → install → verify → resolve →
@@ -31,7 +57,7 @@ the live host, never from this document or any other document.
 |---|---|
 | Component | `openclaw` (Docker container) |
 | Version moving **from** | `[VERIFY]` — assessment `20260904-053532` recorded `2026.7.1`; confirm against the running image, do not trust this line |
-| Version moving **to** (pinned) | **`v2026.8.2`** — the OpenClaw 2.0 line at its current patch (2.0 == `v2026.8.1`; `.2` is the patch). Pin this exact tag; **never `:latest`** |
+| Version moving **to** (pinned) | **`2026.9.3`** (Docker image tag — no `v`; GitHub calls the same release `v2026.9.3`, see the tag-format note above) — the newest OpenClaw 2.0-line release as of 2026-09-09 (retargeted this sitting from the original `v2026.8.2` pin; see the amendment note above). Pin this exact tag; **never `:latest`** |
 | `blast_radius` | `medium` (from `inventory.json`) — **but** this update carries a one-way state migration, so treat the window as Tier **F** (full gate), per `PLAN-update-execution-v1.md` §8 Decision E |
 | What 2.0 changes about state | Migrates sessions/transcripts into a **SQLite** store under the container's OpenClaw home dir (`[VERIFY]` mount — official default `/home/node/.openclaw`). The migration is **forward-only**; the pre-migration originals are retained until an explicit cleanup step (see Phase 4) |
 
@@ -63,6 +89,7 @@ to look):
 | **Env vars** (esp. any `OPENCLAW_*`, bind/gateway, model backend) | `.[0].Config.Env` | `[VERIFY]` — note any `OPENCLAW_GATEWAY_BIND`; see Security posture. **Do not write secret values to this table or anywhere else on disk — see the note below.** |
 | **Restart policy** | `.[0].HostConfig.RestartPolicy` | `[VERIFY]` |
 | **`docker run`/compose definition** it was created from | your compose file, or reconstruct from the above | `[VERIFY]` |
+| **Any plugin installed** | `openclaw plugins list` would query app-level state directly (crosses CLAUDE.md's "OpenClaw config — read version only" boundary); `docker logs`, already part of Phase 0.2, does not | **Closed 2026-09-09 without crossing the boundary.** The Phase 0.2 baseline log tail itself states it on startup: `http server listening (2 plugins: discord, ollama; ...)` — both are OpenClaw's own official channel/model-backend plugins, not a custom or community one. No SDK-breaking-change exposure from `v2026.9.3` for this deployment |
 
 **Secrets in `.Config.Env` — added 2026-09-09, after a sibling incident on
 Ollama's sitting.** Checking a *different* container's env for an
@@ -105,9 +132,9 @@ both exist *before* the first mutating command. Nothing here changes the
 running container.
 
 **0.1 — Confirm the target is a pinned, explicit version.** The pull in
-Phase 1 must reference `v2026.8.2` exactly. If anything in the plan says
-`:latest`, stop and fix it — an unpinned target leaves the rollback version
-undefined and defeats this whole runbook.
+Phase 1 must reference `2026.9.3` exactly (Docker image tag, no `v`). If
+anything in the plan says `:latest`, stop and fix it — an unpinned target
+leaves the rollback version undefined and defeats this whole runbook.
 
 **0.2 — Baseline health snapshot (the same checks Phase 2 re-runs).** Capture
 now, while things are known-good, so "did it break" is measured against a real
@@ -167,13 +194,13 @@ design — Matt runs each one by hand.
 `:latest`**:
 
 ```
-docker pull <IMAGE_REPO>:v2026.8.2        # <IMAGE_REPO> from Step Zero, tag pinned
+docker pull <IMAGE_REPO>:2026.9.3        # <IMAGE_REPO> from Step Zero, tag pinned (Docker Hub tag has no "v")
 ```
 
 **1.2 — Recreate the container from an identical definition, changing only the
 tag.** Same volume(s), same mount path, same user, same port, same env,
 same restart policy — all the `[VERIFY]` values from Step Zero. The only delta
-from the running definition is the image tag → `v2026.8.2`. Mounting the state
+from the running definition is the image tag → `2026.9.3`. Mounting the state
 volume at the same path the recorded `.Config.User` expects is what lets 2.0
 find the existing state and migrate it (Step Zero note).
 
@@ -241,7 +268,7 @@ for manual repair when the state actually needs it. So:
   the official one-shot repair against the **verified** state volume:
 
   ```
-  docker run --rm -v <STATE_VOLUME>:/home/node/.openclaw <IMAGE_REPO>:v2026.8.2 openclaw doctor --fix
+  docker run --rm -v <STATE_VOLUME>:/home/node/.openclaw <IMAGE_REPO>:2026.9.3 openclaw doctor --fix
   ```
 
   Use the **recorded** mount path for the user the image runs as (Step Zero);
@@ -271,7 +298,7 @@ layer is permanently surrendered. Therefore:
   use over your chosen soak period. That command is a one-way door.
 - To see what cleanup *would* remove without removing it:
   ```
-  docker run --rm -v <STATE_VOLUME>:/home/node/.openclaw <IMAGE_REPO>:v2026.8.2 openclaw update cleanup --dry-run
+  docker run --rm -v <STATE_VOLUME>:/home/node/.openclaw <IMAGE_REPO>:2026.9.3 openclaw update cleanup --dry-run
   ```
   Keep this as a preview only. Running the non-`--dry-run` form is out of scope
   for this update window.
@@ -309,7 +336,7 @@ procedure, in order:
    verified back to the Phase 0 baseline.
 
 A run of this whole loop is not "done" until **either** Phase 2 passed on
-`v2026.8.2`, **or** a rollback was performed and itself verified back to the
+`2026.9.3`, **or** a rollback was performed and itself verified back to the
 Phase 0 baseline.
 
 ---
@@ -337,3 +364,11 @@ Official OpenClaw documentation this runbook is grounded in:
 - https://docs.openclaw.ai/cli/doctor
 - https://docs.openclaw.ai/releases/2026.8.2
 - https://docs.openclaw.ai/releases/2026.8.1
+
+Added 2026-09-09 with the retarget to `v2026.9.3` — read directly from
+GitHub's releases API, not a summary page:
+
+- https://github.com/openclaw/openclaw/releases/tag/v2026.9.1
+- https://github.com/openclaw/openclaw/releases/tag/v2026.9.2
+- https://github.com/openclaw/openclaw/releases/tag/v2026.9.3 (breaking
+  changes and the Node.js version-floor note both live here)
