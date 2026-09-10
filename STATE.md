@@ -17,6 +17,10 @@ live fixes — see §1), and Docker Engine updated 29.6.1 → 29.7.2 (target was
 now promoted F→E; Docker's and OpenClaw's both stay at Tier F for their next
 update because of the surprises each hit._
 
+_Confirmed with Matt, 2026-09-10: this update-execution round (Node, Docker
+Engine, OpenClaw, n8n — see §1–2) is complete and the stack is current. No
+open or roadmap items for this project at this time._
+
 ## 1. What's tracked
 
 Seven entries in `config\inventory.json`, not six — `node` and `pwsh` were
