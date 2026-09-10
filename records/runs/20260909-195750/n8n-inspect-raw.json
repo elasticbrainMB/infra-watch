@@ -1,0 +1,290 @@
+[
+    {
+        "Id": "3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00",
+        "Created": "2026-07-25T15:30:50.160771059Z",
+        "Path": "tini",
+        "Args": [
+            "--",
+            "/docker-entrypoint.sh"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 3476,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-09-09T11:56:38.522948434Z",
+            "FinishedAt": "2026-09-09T11:56:38.136035895Z"
+        },
+        "Image": "sha256:9fd68b77fe9c8560e9dad142ba1be109c17b4376121bafc7dac8c2a3c72d8e79",
+        "ResolvConfPath": "/var/lib/docker/containers/3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00/hostname",
+        "HostsPath": "/var/lib/docker/containers/3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00/hosts",
+        "LogPath": "/var/lib/docker/containers/3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00/3d772e5b451053fd242f5845c75ad838daeae637b4b0dcb146e5f70111c2fd00-json.log",
+        "Name": "/n8n",
+        "RestartCount": 0,
+        "Driver": "overlayfs",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "n8n_data:/home/node/.n8n:rw",
+                "C:/automation/caddy/rules:/home/node/.n8n-files/rules:ro"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "n8n_default",
+            "PortBindings": {
+                "5678/tcp": [
+                    {
+                        "HostIp": "127.0.0.1",
+                        "HostPort": "5678"
+                    },
+                    {
+                        "HostIp": "100.115.99.39",
+                        "HostPort": "5678"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "unless-stopped",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": [],
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/acpi",
+                "/proc/asound",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/sys/devices/virtual/powercap",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "Storage": {
+            "RootFS": {
+                "Snapshot": {
+                    "Name": "overlayfs"
+                }
+            }
+        },
+        "Mounts": [
+            {
+                "Type": "volume",
+                "Name": "n8n_data",
+                "Source": "n8n_data",
+                "Destination": "/home/node/.n8n",
+                "Driver": "local",
+                "Mode": "rw",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "bind",
+                "Source": "C:/automation/caddy/rules",
+                "Destination": "/home/node/.n8n-files/rules",
+                "Mode": "ro",
+                "RW": false,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "3d772e5b4510",
+            "Domainname": "",
+            "User": "node",
+            "AttachStdin": false,
+            "AttachStdout": true,
+            "AttachStderr": true,
+            "ExposedPorts": {
+                "5678/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "NODE_ENV=production",
+                "N8N_ENABLED_MODULES=data-table",
+                "NODE_PATH=/opt/nodejs/node-v24.15.0/lib/node_modules",
+                "NODE_VERSION=24.15.0",
+                "N8N_RELEASE_TYPE=stable",
+                "N8N_SECURE_COOKIE=false",
+                "N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false",
+                "NPM_CONFIG_UPDATE_NOTIFIER=false",
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "SHELL=/bin/sh"
+            ],
+            "Cmd": null,
+            "Image": "n8nio/n8n:2.26.0",
+            "Volumes": null,
+            "WorkingDir": "/home/node",
+            "Entrypoint": [
+                "tini",
+                "--",
+                "/docker-entrypoint.sh"
+            ],
+            "Labels": {
+                "com.docker.compose.config-hash": "63c6033690cc1fda40ca821528f4ca15c7942ad171ba1458e8f9e999f2c69d2c",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.depends_on": "",
+                "com.docker.compose.image": "sha256:9fd68b77fe9c8560e9dad142ba1be109c17b4376121bafc7dac8c2a3c72d8e79",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "n8n",
+                "com.docker.compose.project.config_files": "C:\\automation\\n8n\\docker-compose.yml",
+                "com.docker.compose.project.working_dir": "C:\\automation\\n8n",
+                "com.docker.compose.replace": "n8n",
+                "com.docker.compose.service": "n8n",
+                "com.docker.compose.version": "5.3.0",
+                "com.docker.dhi.chain-id": "sha256:db3d10d1e2a9937f10f0113f6039ae034f874aa606bb1180f86a60cc7a518713",
+                "com.docker.dhi.compliance": "cis",
+                "com.docker.dhi.created": "2026-05-22T08:38:22Z",
+                "com.docker.dhi.date.end-of-life": "2028-04-30",
+                "com.docker.dhi.date.release": "2025-05-06",
+                "com.docker.dhi.definition": "image/node/alpine-3.22/24-dev",
+                "com.docker.dhi.distro": "alpine-3.22",
+                "com.docker.dhi.entitlement": "public",
+                "com.docker.dhi.flavor": "",
+                "com.docker.dhi.name": "dhi/node",
+                "com.docker.dhi.package-manager": "apk",
+                "com.docker.dhi.shell": "busybox",
+                "com.docker.dhi.title": "Node.js 24.x (dev)",
+                "com.docker.dhi.url": "https://dhi.io/catalog/node",
+                "com.docker.dhi.variant": "dev",
+                "com.docker.dhi.version": "24.15.0-alpine3.22-dev",
+                "org.opencontainers.image.description": "Workflow Automation Tool",
+                "org.opencontainers.image.source": "https://github.com/n8n-io/n8n",
+                "org.opencontainers.image.title": "n8n",
+                "org.opencontainers.image.url": "https://n8n.io",
+                "org.opencontainers.image.version": "2.26.0"
+            }
+        },
+        "NetworkSettings": {
+            "SandboxID": "add056f9934c48277ef5e4e66468ccfdd85c3cf7e5b21ad2634711b876c5db1d",
+            "SandboxKey": "/var/run/docker/netns/add056f9934c",
+            "Ports": {
+                "5678/tcp": [
+                    {
+                        "HostIp": "100.115.99.39",
+                        "HostPort": "5678"
+                    },
+                    {
+                        "HostIp": "127.0.0.1",
+                        "HostPort": "5678"
+                    }
+                ]
+            },
+            "Networks": {
+                "n8n_default": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "n8n",
+                        "n8n"
+                    ],
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "dc285cd46b7c7a2b8b02c0cd7fde0e932c249352b2271ac1b03588e146e29933",
+                    "EndpointID": "f57202680c07258fb5535baff2dbef9815ae366eb244ba53a03997ca3fce63b7",
+                    "Gateway": "172.20.0.1",
+                    "IPAddress": "172.20.0.2",
+                    "MacAddress": "6a:ab:54:40:04:59",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "n8n",
+                        "3d772e5b4510"
+                    ]
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "digest": "sha256:ab022eabaf85df4e066bb00d103a25a21e1f28dd768d846269a8727f6dc742ca",
+            "size": 2652,
+            "platform": {
+                "architecture": "amd64",
+                "os": "linux"
+            }
+        }
+    }
+]

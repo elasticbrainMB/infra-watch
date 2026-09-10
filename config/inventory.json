@@ -15,7 +15,66 @@
         "tag_pattern": "^n8n@(\\d+\\.\\d+\\.\\d+)$"
       },
       "blast_radius": "high",
-      "notes": "Live workflows depend on this. Container recreation needs Matt's approval, per chunk. Release tags also carry a legacy 1.x line (e.g. n8n@1.123.77) alongside 2.x, plus floating 'stable'/'beta' tags that don't match tag_pattern — comparison stays within the installed major (2.x) by design."
+      "notes": "Live workflows depend on this. Container recreation needs Matt's approval, per chunk. Release tags also carry a legacy 1.x line (e.g. n8n@1.123.77) alongside 2.x, plus floating 'stable'/'beta' tags that don't match tag_pattern — comparison stays within the installed major (2.x) by design.",
+      "deployment": {
+        "mechanism": "Docker Compose (not a bare `docker run`). Defined by C:\\automation\\n8n\\docker-compose.yml, a single `n8n` service. Recreate = edit the `image:` tag in that file and run `docker compose up -d` (Matt's hand action, deny-listed for this project either way).",
+        "mechanism_evidence": "Verified 2026-09-09, read-only, live host: `docker inspect n8n` labels carry `com.docker.compose.project=n8n`, `com.docker.compose.project.config_files=C:\\automation\\n8n\\docker-compose.yml`; the compose file itself was read directly rather than reconstructed from inspect output.",
+        "compose_file": "C:\\automation\\n8n\\docker-compose.yml",
+        "image_repo": "n8nio/n8n",
+        "state_volume": "n8n_data",
+        "state_volume_kind": "named Docker volume, external:true in compose (not a bind mount)",
+        "state_mount_path": "/home/node/.n8n",
+        "additional_mount": "C:/automation/caddy/rules -> /home/node/.n8n-files/rules, read-only bind mount (caddy's own rules directory, not n8n state — must be carried into the recreate definition unchanged, but is not part of the Phase 0.3 backup scope since it isn't n8n's own data)",
+        "container_user": "node",
+        "container_name": "n8n",
+        "published_ports": "127.0.0.1:5678->5678/tcp and 100.115.99.39:5678->5678/tcp (a tailnet address, not 0.0.0.0) — confirmed via both `docker inspect` PortBindings and the compose file's `ports:` list. Same loopback+tailnet posture as openclaw.",
+        "restart_policy": "unless-stopped (MaximumRetryCount 0)",
+        "db_backend": "SQLite-in-volume (the default). Confirmed two independent ways: (1) no DB_TYPE/DB_POSTGRESDB_* env var anywhere in the compose file or the live container's .Config.Env; (2) direct read-only confirmation that /home/node/.n8n/database.sqlite exists inside the container (40,620,032 bytes, 2026-09-09). No external Postgres involved.",
+        "encryption_key": "N8N_ENCRYPTION_KEY is NOT set as a container env var (absent from both the compose file and the live .Config.Env — confirmed, not assumed from the absence per CLAUDE.md's rule). Per n8n's own documented behavior when the env var is unset, it auto-generates and persists the key inside the data volume. Confirmed read-only that /home/node/.n8n/config exists inside the container (existence check only, `test -f`, content never read or written anywhere) — this is where the key lives. Because it lives inside n8n_data, the Phase 0.3 volume backup and an unchanged recreate (same volume, same mount path) carry it forward automatically; no env var needs to be added or preserved on recreate for this.",
+        "env_vars": {
+          "names_present": ["NODE_ENV", "N8N_ENABLED_MODULES", "NODE_PATH", "NODE_VERSION", "N8N_RELEASE_TYPE", "N8N_SECURE_COOKIE", "N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS", "NPM_CONFIG_UPDATE_NOTIFIER", "PATH", "SHELL"],
+          "note": "None of these are credentials — confirmed by reading both the compose file and the live container env directly; nothing redacted here because nothing secret was found. N8N_ENABLED_MODULES=data-table, N8N_SECURE_COOKIE=false, N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false are the only n8n-specific settings; the rest are base-image Node plumbing."
+        },
+        "current_version": "2.37.11",
+        "current_image_digest": "sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5",
+        "current_image_digest_evidence": "Confirmed two independent ways, same discipline as openclaw's tag-format check: (1) the Docker Hub tags API for n8nio/n8n:2.37.11 before the pull (amd64 digest sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5); (2) the live container's own compose label after recreate, `com.docker.compose.image=sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5` — exact match, not assumed.",
+        "version_history": [
+          { "version": "2.26.0", "note": "Installed prior to this sitting." },
+          { "version": "2.37.11", "installed_on": "2026-09-09", "verify_run": "20260909-195750", "verify_result": "PASS. Container up, healthz and healthz/readiness both 200 (readiness=200 is the code-confirmed migration-completed signal — see readiness_signal_confirmed_from_source above). Startup log showed every one of ~50 pending migrations as a clean Starting/Finished pair, no errors. Workflow count unchanged at 10 total / 7 active against the Phase 0 baseline. caddy-ping smoke test: 200, body 'pong'. A genuinely clean run — no live fixes needed, unlike openclaw's or Docker's sittings this same week." }
+        ],
+        "tier_promotion_2026-09-09": "Per TIERS.md's promotion rule, this is n8n's own first clean Tier-F run under the update-execution flow — verify PASSED with no surprises (clean migration log, no crash loop, no dependency break, no live fix needed). Promotes n8n's own apply step F->E for its next update, distinct from and not inherited from any other component's promotion — promotion is per-component, per the runbook's own note.",
+        "target_version_2026-09-09": {
+          "pinned_target": "n8n@2.37.11 (GitHub release tag) / Docker Hub image tag 2.37.11, no prefix — confirmed against the Hub API directly before trusting it (`hub.docker.com/v2/repositories/n8nio/n8n/tags/2.37.11`, active, amd64 digest sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5), same tag-format discipline as openclaw's sitting.",
+          "freshness_check": "Re-checked live against n8n-io/n8n's GitHub releases before this sitting proceeded. Three newer non-prerelease, non-draft releases have shipped since the target was pinned from run 20260907-080001: n8n@2.38.1 (published 2026-09-01), n8n@2.38.4 (2026-09-07), n8n@2.38.5 (2026-09-09). All three release bodies were read directly (not summarized) — none names a CVE, security fix, or named vulnerability; all are routine bug fixes/features/performance items. Per the apply prompt's own rule, this does not stop the sitting — proceeding on the pinned n8n@2.37.11 target, noted here rather than silently retargeted."
+        },
+        "phase0_baseline_2026-09-09": {
+          "run_id": "20260909-195750",
+          "container_health": "docker ps: Up 13 hours at capture time. No Docker-level healthcheck is configured for this container (`docker inspect .State.Health` returns null) — Phase 2 relies on the HTTP endpoints below, not a Docker healthcheck status.",
+          "healthz": "200 {\"status\":\"ok\"}",
+          "healthz_readiness": "200 {\"status\":\"ok\"}",
+          "readiness_signal_confirmed_from_source": "Read directly from n8n's own source at the target tag (packages/cli/src/abstract-server.ts, n8n@2.37.11): `/healthz/readiness` returns 200 only when `connectionState.connected && connectionState.migrated && fullyReady`, else 503. `connectionState.migrated` is set true only after `DbConnection.migrate()` (packages/@n8n/db/src/connection/db-connection.ts) completes `dataSource.runMigrations()` without throwing. This makes the readiness endpoint itself the authoritative, code-verified migration-completion signal for Phase 2 — stronger than grepping log text, and used as the primary go/no-go check in n8n-update-check.ps1, corroborated by (not replaced by) a log-tail scan for exception/error text as a second signal.",
+          "workflow_count": {
+            "total": 10,
+            "active": 7,
+            "evidence": "Read directly and read-only from /home/node/.n8n/database.sqlite via `docker exec n8n node -e \"...node:sqlite DatabaseSync(..., {readOnly:true})...\"` (SELECT COUNT(*) FROM workflow_entity, and again WHERE active = 1) — not guessed and not taken from the UI, since no n8n API key is available to this project and the UI needs Matt's own login. The active count (7) cross-checks exactly against the 7 workflows named individually in the docker logs startup tail (Job Search 2.0, Job Search - Error Alerts, UC1 - Cycling Day Rating, UC2 - TULP Squeeze Alert, UC3 - Pinball Digest, caddy-ping, Caddy - Webhook Bridge)."
+          },
+          "smoke_test_workflow": {
+            "name": "caddy-ping",
+            "id": "bwKdWne6ib8ABNGM",
+            "active": true,
+            "why_chosen": "Single-node workflow (one `n8n-nodes-base.webhook` trigger node only, confirmed by reading its stored node list read-only from the database) — no HTTP-request/DB-write/external-side-effect nodes, so re-triggering it in Phase 2 is safe and idempotent. Node type confirmed via the same read-only node:sqlite query pattern used for the workflow count."
+          }
+        },
+        "backup_2026-09-09": {
+          "status": "Taken 2026-09-09 by Matt (docker run is unconditionally deny-listed for this project, no carve-out — same constraint as openclaw's sitting). Verified non-empty by this project afterward using Windows' own tar.exe, no Docker needed for that half.",
+          "path": "C:\\automation\\n8n\\backups\\n8n-2.26.0-20260909.tgz",
+          "size_bytes": 6776702,
+          "sha256": "E207E07E60964B6A88B59676DEE1BA4AC49CE74613101FA6BB0D74D36D329649",
+          "verification": "`tar.exe -tzf` lists 18 real entries including database.sqlite, database.sqlite-wal, database.sqlite-shm (the live SQLite state), ./config (the file holding the auto-generated N8N_ENCRYPTION_KEY — confirmed present in the archive, content never read), n8nEventLog*.log, storage/workflows/ execution data, and nodes/package.json — not an empty archive from a misnamed volume.",
+          "restore_target_volume": "n8n_data (the same verified name from Step Zero)",
+          "prior_image_digest_for_rollback": "sha256:9fd68b77fe9c8560e9dad142ba1be109c17b4376121bafc7dac8c2a3c72d8e79 (tag 2.26.0) — retained as the rollback reference through the 7-day window, ending 2026-09-16."
+        }
+      }
     },
     {
       "id": "open-webui",

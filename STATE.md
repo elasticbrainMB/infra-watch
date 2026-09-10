@@ -6,16 +6,16 @@ something became true; `PLAN-infra-watch-v1.md` remains authoritative on
 *how* and *why*, and stays archive, read on demand. Read this file first;
 go to the full plan only when a provenance question actually requires it.
 
-_Last updated: 2026-09-09 — OpenClaw updated 2026.7.1 → 2026.9.3 via the
-update-execution flow, the third component through it and the first Docker
-container. Retargeted mid-sitting from the originally-planned v2026.8.2 to
-the newest release with Matt's explicit approval, after a freshness check
-found three newer releases. Verify ultimately PASSED, but the run needed
-two live fixes not in the original plan — see §1. Docker Engine was updated
-29.6.1 → 29.7.2 earlier the same day (target was 29.8.0; not reached).
-Fleet-wide verify passed on everything except the exact version pin;
-Docker's apply step stays at Tier F, not promoted, because of that
-surprise._
+_Last updated: 2026-09-09 — n8n updated 2.26.0 → n8n@2.37.11 via the
+update-execution flow, the fourth component through it (and the last of the
+three originally-named) — its own first sitting under this flow, and the
+first with a genuinely clean run this week: verify PASSED with no live
+fixes needed. Earlier the same day: OpenClaw updated 2026.7.1 → 2026.9.3
+(retargeted mid-sitting to the newest release, verify PASSED but needed two
+live fixes — see §1), and Docker Engine updated 29.6.1 → 29.7.2 (target was
+29.8.0; not reached, fleet-wide verify otherwise clean). n8n's apply step is
+now promoted F→E; Docker's and OpenClaw's both stay at Tier F for their next
+update because of the surprises each hit._
 
 ## 1. What's tracked
 
@@ -26,7 +26,7 @@ one entry can't point `releases_from` at two repos). Confirmed with Matt
 
 | id | blast_radius | installed (as of last run) |
 |---|---|---|
-| n8n | high | 2.26.0 |
+| n8n | high | 2.37.11 |
 | ollama | high | 0.33.3 |
 | docker | high | 29.7.2 |
 | openclaw | medium | 2026.9.3 |
@@ -378,9 +378,110 @@ picking one, per his own "if it makes sense to build the plan for both now
   `inventory.json`) already forces full Tier F on its own; the migration
   reinforces it independently via Decision E.
 
-Both were pending Matt's review at the time they were drafted; n8n's still
-is. OpenClaw's has since run for real (see above) — update-execution
-sequence is now Docker Engine (done) → OpenClaw (done) → n8n → Open WebUI.
+Both were pending Matt's review at the time they were drafted. OpenClaw's
+and n8n's have since both run for real (see below) — update-execution
+sequence is now Docker Engine (done) → OpenClaw (done) → n8n (done) → Open
+WebUI.
+
+**n8n updated 2.26.0 → n8n@2.37.11, 2026-09-09** — the fourth component
+through the update-execution flow, n8n's own first sitting under it, and the
+cleanest run of the week: verify PASSED with no live fixes needed, unlike
+Docker's target-miss or OpenClaw's two real surprises.
+
+**Freshness check (run before Step Zero, per the prompt's own first step)**
+found three newer non-prerelease releases had shipped since the target was
+pinned from run `20260907-080001`: `n8n@2.38.1` (2026-09-01), `n8n@2.38.4`
+(2026-09-07), `n8n@2.38.5` (2026-09-09). All three release bodies were read
+directly; none named a CVE or security fix. Per the prompt's own rule this
+did not stop the sitting — proceeded on the pinned `n8n@2.37.11` target,
+noted rather than silently retargeted.
+
+**Step Zero closed n8n's first `deployment` block** (it had none before this
+sitting, like Ollama's and OpenClaw's first sittings): Docker-Compose-managed
+(`C:\automation\n8n\docker-compose.yml`, same pattern as openclaw), state
+volume `n8n_data` → `/home/node/.n8n`, plus a read-only bind mount of caddy's
+own rules directory (not n8n state, carried unchanged). DB backend confirmed
+directly as SQLite-in-volume — not inferred from the absent Postgres env
+vars, but from the live `database.sqlite` file's confirmed presence inside
+the container (40.6 MB). **`N8N_ENCRYPTION_KEY` is not a container env var at
+all** — confirmed absent from both the compose file and the live container
+env; it's auto-generated and persisted inside the volume itself (a
+`/home/node/.n8n/config` file was confirmed present, its content never read
+or written anywhere), which means the Phase 0.3 volume backup and an
+unchanged recreate carry it forward automatically with no env-var handling
+needed. Published ports scoped to loopback + one tailnet address, matching
+openclaw's posture, not broad-LAN. Docker Hub's image tag for the target
+confirmed as `2.37.11` (no `n8n@` prefix, matching how the running `2.26.0`
+image is also tagged) before handing Matt a pull command.
+
+**The migration-completion signal was confirmed from n8n's own source, not
+assumed or log-scraped.** Read directly at the pinned target tag
+(`packages/cli/src/abstract-server.ts`, `n8n@2.37.11`): `/healthz/readiness`
+returns 200 only when `connectionState.connected && connectionState.migrated
+&& fullyReady`, and `migrated` is set true only after
+`DbConnection.migrate()` completes `dataSource.runMigrations()` without
+throwing. This makes the readiness endpoint itself the authoritative,
+code-verified go/no-go signal for Phase 2 — stronger than the log-text grep
+the runbook flagged as possibly necessary, and it held up: real migration
+logs (~50 named migrations, each a clean `Starting`/`Finished` pair, no
+errors) matched a readiness endpoint that returned 200 throughout.
+
+**No n8n API key exists for this project**, so the workflow-count baseline
+(a Phase 0/Phase 2 pass criterion) couldn't come from the API (401 on both
+`/rest/workflows` and `/api/v1/workflows`) or the UI (needs Matt's own
+login). Read directly and read-only from `/home/node/.n8n/database.sqlite`
+instead, via `docker exec n8n node -e "...node:sqlite..."` — 10 workflows
+total, 7 active, cross-checked exactly against the 7 workflows individually
+named in the startup log. Picked `caddy-ping` (a single-node webhook-trigger
+workflow, no side-effect nodes, confirmed read-only from its stored node
+list) as the Phase 2 smoke test — called live both before and after, `200`
+/ `pong` both times.
+
+**The mandatory Phase 0.3 backup needed Matt's hand action**, same
+constraint as openclaw's sitting: the backup command is a `docker run`,
+unconditionally deny-listed for this project with no carve-out. Matt ran it;
+verified afterward by this project using Windows' own `tar.exe` (no Docker
+needed for that half): 6,776,702 bytes, 18 real entries including
+`database.sqlite`/`-wal`/`-shm` and the `config` file holding the encryption
+key — not an empty archive. `scripts\n8n-update-check.ps1` written new
+(single-target shape, mirrors `ollama-update-check.ps1`, not
+`docker-update-check.ps1`'s whole-fleet shape, since an n8n update bounces
+only the n8n container).
+
+**One real hiccup, non-technical:** Matt's first `docker compose up -d`
+failed (`no configuration file provided: not found`) because his shell's
+working directory was `C:\Windows\System32`, not the project folder. Fixed
+by handing him the same command with an explicit `-f` path. The image pull
+and the compose-file edit (only the `image:` line changed) had both already
+landed correctly before that.
+
+Phase 0 ran clean (run `20260909-195750`); Matt pulled and recreated by hand;
+Phase 2 verified **PASS**: container up, `healthz`/`healthz/readiness` both
+200, startup log showed every migration `Starting`/`Finished` cleanly with
+no errors, workflow count unchanged (10 total / 7 active), smoke test
+unchanged (`200`/`pong`). Image digest cross-checked two ways (Docker Hub's
+tag API before the pull, the live container's own compose label after
+recreate) — exact match,
+`sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5`.
+Deployment block updated in `inventory.json`; the `2.26.0` image
+digest/backup pair is now the rollback reference for the 7-day window
+(through 2026-09-16).
+
+**Per `TIERS.md`'s promotion rule, this is n8n's own first clean Tier-F
+run**, which promotes *n8n's own* apply step F→E for its next update —
+distinct from and not inherited from any other component's promotion, per
+the runbook's own note that promotion is per-component.
+
+**Reminder surfaced to Matt, not verifiable from the host:** two breaking
+API changes landed in the 42 releases crossed (`2.36.7` removed the `offset`
+query param from the workflow-history endpoint and now requires an explicit
+JSON content type on decorator routes) plus the Google Ads node's migration
+off its sunset v21 API (`2.34.6`/`2.35.3`) — his own scripts/workflows are
+his to check against these, not something this project can verify.
+
+**Update-execution sequence: Docker Engine (done) → OpenClaw (done) → n8n
+(done) → Open WebUI.** Open WebUI is last in the queue (§1 above) and has no
+pending gap as of the last successful run.
 
 ## 2. In progress
 

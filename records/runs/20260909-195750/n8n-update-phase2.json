@@ -1,0 +1,87 @@
+{
+  "run_id": "20260909-195750",
+  "phase": "verify",
+  "timestamp": "2026-09-09T20:15:54.6451379-05:00",
+  "mode": "target-check",
+  "target_version": "2.37.11",
+  "current": {
+    "container_state": {
+      "ps_raw": "{\"Command\":\"\\\"tini -- /docker-ent…\\\"\",\"CreatedAt\":\"2026-09-09 20:14:08 -0500 CDT\",\"HealthStatus\":\"none\",\"ID\":\"5bda66a8c5c7\",\"Image\":\"n8nio/n8n:2.37.11\",\"Labels\":\"com.docker.compose.config-hash=a5699f00591dc54ac139a52a830c61b379596008ee377a3bfe3566f2cfb9be8e,com.docker.compose.container-number=1,com.docker.compose.depends_on=,com.docker.compose.image=sha256:7cfbec0beac1b46401f2f7e6b80a4a63e47aaddffb0e45b221678f328d6ec7e5,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=C:\\\\automation\\\\n8n\\\\docker-compose.yml,com.docker.compose.project.working_dir=C:\\\\automation\\\\n8n,com.docker.compose.project=n8n,com.docker.compose.replace=n8n,com.docker.compose.service=n8n,com.docker.compose.version=5.5.1,com.docker.dhi.chain-id=sha256:81fa8e89619bef1fb70172a2f72ec4218eb7ccbc438f0e8458d50e8906e8bbca,com.docker.dhi.compliance=cis,com.docker.dhi.created=2026-07-30T15:36:28Z,com.docker.dhi.date.release=2026-05-05,com.docker.dhi.definition=image/node/alpine-3.24/26-dev,com.docker.dhi.distro=alpine-3.24,com.docker.dhi.entitlement=public,com.docker.dhi.flavor=,com.docker.dhi.name=dhi/node,com.docker.dhi.package-manager=apk,com.docker.dhi.shell=busybox,com.docker.dhi.title=Node.js 26.x (dev),com.docker.dhi.url=https://dhi.io/catalog/node,com.docker.dhi.variant=dev,com.docker.dhi.version=26.5.1-alpine3.24-dev,desktop.docker.io/binds/0/Source=n8n_data,desktop.docker.io/binds/0/SourceKind=hostFile,desktop.docker.io/binds/0/Target=/home/node/.n8n,desktop.docker.io/binds/1/Source=C:/automation/caddy/rules,desktop.docker.io/binds/1/SourceKind=hostFile,desktop.docker.io/binds/1/Target=/home/node/.n8n-files/rules,desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/5678/tcp=127.0.0.1:5678,100.115.99.39:5678,org.opencontainers.image.description=Workflow Automation Tool,org.opencontainers.image.source=https://github.com/n8n-io/n8n,org.opencontainers.image.title=n8n,org.opencontainers.image.url=https://n8n.io,org.opencontainers.image.version=2.37.11\",\"LocalVolumes\":\"1\",\"Mounts\":\"n8n_data,/run/desktop/m…\",\"Names\":\"n8n\",\"Networks\":\"n8n_default\",\"Platform\":{\"architecture\":\"amd64\",\"os\":\"linux\"},\"Ports\":\"100.115.99.39:5678-\\u003e5678/tcp, 127.0.0.1:5678-\\u003e5678/tcp\",\"RunningFor\":\"About a minute ago\",\"Size\":\"79.8MB (virtual 2.16GB)\",\"State\":\"running\",\"Status\":\"Up About a minute\"}",
+      "up": true,
+      "health": "null",
+      "started_at": "2026-09-10T01:14:09.514132463Z",
+      "restart_count": "0"
+    },
+    "healthz": {
+      "ok": true,
+      "http_code": 200,
+      "body": "{\"status\":\"ok\"}",
+      "error": null
+    },
+    "healthz_readiness": {
+      "ok": true,
+      "http_code": 200,
+      "body": "{\"status\":\"ok\"}",
+      "error": null
+    },
+    "log_since_start": {
+      "clean": true,
+      "error_hits": [],
+      "tail_500": "yTypeCheckAndWorkflowIdColumn1787089039727\r\nFinished migration DropWorkflowReviewActivityTypeCheckAndWorkflowIdColumn1787089039727\r\nStarting migration AddProjectManageMembersScopeToCustomRoles1787140858009\r\nFinished migration AddProjectManageMembersScopeToCustomRoles1787140858009\r\nn8n Task Broker ready on 127.0.0.1, port 5679\r\nFailed to start Python task runner in internal mode. because Python 3 is missing from this system. Launching a Python runner in internal mode is intended only for debugging and is not recommended for production. Users are encouraged to deploy in external mode. See: https://docs.n8n.io/hosting/configuration/task-runners/#setting-up-external-mode\r\n\r\nThere are deprecations related to your n8n setup. Please take the recommended actions to update your configuration:\r\n - N8N_UNVERIFIED_PACKAGES_ENABLED -> The default for this variable will change to `false` in a future version. Set it to `true` explicitly to keep installing unverified community packages.\r\n - N8N_RUNNERS_TASK_TIMEOUT -> The default for this variable will be reduced from 300 (5 minutes) to 60 (1 minute) in a future version. Set it explicitly to keep your current task timeout.\r\n - N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES -> The default for this variable will be reduced from 2 GiB to 256 MiB in a future version. Set it explicitly to keep your current limit.\r\n - N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES -> The default for this variable will be reduced from 5000 to 1000 in a future version. Set it explicitly to keep your current limit.\r\n\r\n[license SDK] cert state: expiresAt=2026-09-17T13:03:42.585Z terminatesAt=2051-06-08T12:23:54.172Z issuedAt=2026-09-07T13:03:42.626Z msToExpiry=647367559 msToTermination=780836979146 isValid=true isRenewalDue=false detachedEntitlementsCount=0 entitlements=1 enabledFeatures=6\r\n[license SDK] Skipping renewal on init: license cert is not due for renewal\r\n[runner:js] (node:19) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\nRegistered runner \"JS Task Runner\" (oBt41FLf6e56FAYTwN3w0) \r\nInstance registered\r\nDiscovered 4 cluster checks\r\nRecorded version change: 2.26.0 -> 2.37.11\r\nSandbox: enabled=false provider=n8n-sandbox (from env)\r\nVersion: 2.37.11\r\nBuilding workflow dependency index...\r\nFinished building workflow dependency index. Processed 0 draft workflows, 0 published workflows.\r\nStart Active Workflows:\r\nActivated workflow \"Job Search 2.0\" (ID: nU1zzEq8eokSBAAd)\r\nActivated workflow \"Job Search - Error Alerts\" (ID: LemRWrmKc0bDyFXP)\r\nActivated workflow \"UC1 - Cycling Day Rating\" (ID: r1PIFfJNoLdGTgms)\r\nActivated workflow \"UC2 - TULP Squeeze Alert\" (ID: hUZxpUvg4UIKLND8)\r\nActivated workflow \"UC3 - Pinball Digest\" (ID: MtYiFCtlXAxye3lB)\r\nActivated workflow \"caddy-ping\" (ID: bwKdWne6ib8ABNGM)\r\nActivated workflow \"Caddy - Webhook Bridge\" (ID: EngZVbkP2WXpyy1g)\r\n\r\nEditor is now accessible via:\r\nhttp://localhost:5678\r\n"
+    },
+    "workflows": {
+      "ok": true,
+      "total": 10,
+      "active": 7,
+      "error": null,
+      "raw": "{\"total\":10,\"active\":7}"
+    },
+    "smoke_test": {
+      "ok": true,
+      "http_code": 200,
+      "workflow": "caddy-ping",
+      "body": "pong",
+      "error": null
+    }
+  },
+  "diff": {
+    "container_up": {
+      "before": true,
+      "after": true
+    },
+    "healthz_ok": {
+      "before": true,
+      "after": true
+    },
+    "readiness_ok": {
+      "before": true,
+      "after": true
+    },
+    "log_clean": {
+      "before": true,
+      "after": true
+    },
+    "workflows": {
+      "before": {
+        "ok": true,
+        "total": 10,
+        "active": 7,
+        "error": null,
+        "raw": "{\"total\":10,\"active\":7}"
+      },
+      "after": {
+        "ok": true,
+        "total": 10,
+        "active": 7,
+        "error": null,
+        "raw": "{\"total\":10,\"active\":7}"
+      },
+      "match": true
+    },
+    "smoke_test_ok": {
+      "before": true,
+      "after": true
+    }
+  },
+  "pass": true
+}
